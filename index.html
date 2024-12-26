@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Corridas</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+        .container {
+            max-width: 90%;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: black;
+        }
+        label, select, input, button {
+            display: block;
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            border: 1px solid #ced4da;
+        }
+        button {
+            background-color: black;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .card {
+          width: 50%;
+            background-color: black;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .total-counts {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .total-counts div {
+            background-color: green;
+            color: white;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 10px;
+            max-width: 200px;
+        }
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px auto;
+                padding: 10px;
+            }
+            table, th, td {
+                font-size: 0.9em;
+                border: 1px solid black;
+                width: 100%;
+            }
+            h2 {
+                font-size: 1.0em;
+            }
+            h1{
+              color: white;
+              font-size: 90px;
+            }
+            .total-counts {
+                flex-direction: column;
+                align-items: center;
+            }
+            .total-counts div {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+        @media (max-width: 480px) {
+            label, select, input, button {
+                font-size: 0.9em;
+                padding: 8px;
+            }
+            h1 {
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Registro de Corridas</h1>
+        <form id="corridaForm">
+            <label for="descricao">Descrição:</label>
+            <input type="text" id="descricao" name="descricao" required>
+            
+            <label for="tipo">Tipo:</label>
+            <select id="tipo" name="tipo" required>
+                <option value="ida">Ida</option>
+                <option value="volta">Volta</option>
+            </select>
+            
+            <button type="submit">Registrar Corrida</button>
+        </form>
+        
+        <div class="total-counts">
+            <div>
+                <h2>Total de Idas: <span id="totalIda">0</span></h2>
+            </div>
+            <div>
+                <h2>Total de Voltas: <span id="totalVolta">0</span></h2>
+            </div>
+            <div>
+                <h1>Total: R$ <span id="total">0,00</span></h1>
+            </div>
+        </div>
+        <button onclick="copiarChavePix()">Copiar chave Pix <br>
+        <b>(64) 9 9252-7786 <br> Avonaldo de Sousa Lima</b></button>
+        <button onclick="limparCorridas()">Limpar todos os registros</button>
+        
+        <h2>Corridas Registradas</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Descrição</th>
+                    <th>Tipo</th>
+                    <th>Data e Hora</th>
+                    <th>Valor</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="corridasTableBody">
+            </tbody>
+        </table>
+    </div>
+    
+    <script>
+        const VALOR_UNITARIO = 10.25;
+
+        document.getElementById('corridaForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const descricao = document.getElementById('descricao').value;
+            const tipo = document.getElementById('tipo').value;
+            const dataHora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+
+            let corridas = JSON.parse(localStorage.getItem('corridas')) || [];
+            corridas.push({ descricao, tipo, valor: VALOR_UNITARIO, dataHora });
+            localStorage.setItem('corridas', JSON.stringify(corridas));
+            
+            atualizarTotal();
+            carregarCorridas();
+        });
+
+        function atualizarTotal() {
+            let corridas = JSON.parse(localStorage.getItem('corridas')) || [];
+            let total = corridas.reduce((sum, corrida) => sum + corrida.valor, 0);
+            let totalIda = corridas.filter(corrida => corrida.tipo === 'ida').length;
+            let totalVolta = corridas.filter(corrida => corrida.tipo === 'volta').length;
+            document.getElementById('total').textContent = total.toFixed(2).replace('.', ',');
+            document.getElementById('totalIda').textContent = totalIda;
+            document.getElementById('totalVolta').textContent = totalVolta;
+        }
+
+        function carregarCorridas() {
+            let corridas = JSON.parse(localStorage.getItem('corridas')) || [];
+            const tbody = document.getElementById('corridasTableBody');
+            tbody.innerHTML = '';
+            corridas.forEach((corrida, index) => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `<td>${corrida.descricao}</td><td>${corrida.tipo}</td><td>${corrida.dataHora}</td><td>R$ ${corrida.valor.toFixed(2).replace('.', ',')}</td><td><button class="delete-button" onclick="excluirCorrida(${index})">🗑️</button></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function excluirCorrida(index) {
+            let corridas = JSON.parse(localStorage.getItem('corridas')) || [];
+            corridas.splice(index, 1);
+            localStorage.setItem('corridas', JSON.stringify(corridas));
+            atualizarTotal();
+            carregarCorridas();
+        }
+
+        function limparCorridas() {
+            localStorage.removeItem('corridas');
+            atualizarTotal();
+            carregarCorridas();
+        }
+
+        function copiarChavePix() {
+            const chavePix = '64992527786';
+            navigator.clipboard.writeText(chavePix).then(() => {
+                alert('Chave Pix copiada!');
+            }, () => {
+                alert('Erro ao copiar a chave Pix.');
+            });
+        }
+
+        // Atualiza o total e carrega as corridas ao carregar a página
+        atualizarTotal();
+        carregarCorridas();
+    </script>
+</body>
+</html>
