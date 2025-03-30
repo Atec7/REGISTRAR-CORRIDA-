@@ -4,115 +4,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Corridas</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f8f9fa;
-            color: #343a40;
+            background-color: #f0f2f5;
+            color: #333;
         }
         .container {
-            max-width: 90%;
-            margin: 50px auto;
+            max-width: 800px;
+            margin: auto;
             padding: 20px;
-            background-color: #ffffff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
             border-radius: 8px;
-            width: 100%;
-            box-sizing: border-box;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         h1 {
             text-align: center;
-            margin-bottom: 30px;
-            color: black;
+            color: #4CAF50;
+            margin-bottom: 20px;
         }
-        label, select, input, button {
-            display: block;
-            width: 100%;
-            margin-bottom: 15px;
-            padding: 10px;
-            border-radius: 4px;
+        form {
+            margin-bottom: 20px;
         }
         label {
-            margin-bottom: 5px;
             font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
         }
-        input, select {
-            border: 1px solid #ced4da;
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
         }
         button {
-            background-color: black;
-            color: #ffffff;
+            background-color: #4CAF50;
+            color: white;
             border: none;
             cursor: pointer;
         }
         button:hover {
-            background-color: #0056b3;
+            background-color: #45a049;
+        }
+        .cards {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         .card {
-          width: 50%;
-            background-color: black;
-            border-radius: 8px;
+            flex: 1;
+            min-width: 150px;
+            background-color: #4CAF50;
+            color: #fff;
             padding: 20px;
             text-align: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        .total-counts {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 20px;
-        }
-        .total-counts div {
-            background-color: green;
-            color: white;
             border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card h2 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+        .card p {
+            margin: 5px 0 0;
+            font-size: 1.2em;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ccc;
             padding: 10px;
             text-align: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 10px;
-            max-width: 200px;
+        }
+        th {
+            background-color: #f0f2f5;
+            font-weight: bold;
         }
         @media (max-width: 768px) {
             .container {
-                margin: 20px auto;
                 padding: 10px;
             }
-            table, th, td {
-                font-size: 0.9em;
-                border: 1px solid black;
-                width: 100%;
+            h1 {
+                font-size: 1.4em;
             }
-            h2 {
-                font-size: 1.0em;
-            }
-            h1{
-              color: white;
-              font-size: 20px;
-            }
-            .total-counts {
+            .cards {
                 flex-direction: column;
-                align-items: center;
             }
-            .total-counts div {
-                width: 100%;
+            .card {
                 margin-bottom: 10px;
             }
-        }
-        @media (max-width: 480px) {
-            label, select, input, button {
+            button {
                 font-size: 0.9em;
                 padding: 8px;
             }
+        }
+        @media (max-width: 480px) {
             h1 {
                 font-size: 1.2em;
+            }
+            input, select, button {
+                font-size: 0.8em;
+                padding: 6px;
+            }
+            th, td {
+                font-size: 0.9em;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="recibo">
         <h1>Registro de Corridas</h1>
         <form id="corridaForm">
             <label for="descricao">Descrição:</label>
@@ -123,41 +132,45 @@
                 <option value="ida">Ida</option>
                 <option value="volta">Volta</option>
             </select>
-            
+
+            <label for="observacao">Observação (Opcional):</label>
+            <input type="text" id="observacao" name="observacao">
+
             <button type="submit">Registrar Corrida</button>
         </form>
-        
-        <div class="total-counts">
-            <div>
-                <h2>Total de Idas: <span id="totalIda">0</span></h2>
+
+        <div class="cards">
+            <div class="card">
+                <h2>Total de Idas</h2>
+                <p id="totalIda">0</p>
             </div>
-            <div>
-                <h2>Total de Voltas: <span id="totalVolta">0</span></h2>
+            <div class="card">
+                <h2>Total de Voltas</h2>
+                <p id="totalVolta">0</p>
             </div>
-            <div>
-                <h1>Total: R$ <span id="total">0,00</span></h1>
+            <div class="card">
+                <h2>Valor Total</h2>
+                <p>R$ <span id="total">0,00</span></p>
             </div>
         </div>
-        <button onclick="copiarChavePix()">Copiar chave Pix <br>
-        <b>(64) 9 9252-7786 <br> Avonaldo de Sousa Lima</b></button>
-        <button onclick="limparCorridas()">Limpar todos os registros</button>
-        
-        <h2>Corridas Registradas</h2>
+
         <table>
             <thead>
                 <tr>
                     <th>Descrição</th>
                     <th>Tipo</th>
+                    <th>Observação</th>
                     <th>Data e Hora</th>
                     <th>Valor</th>
                     <th>Ações</th>
                 </tr>
             </thead>
-            <tbody id="corridasTableBody">
-            </tbody>
+            <tbody id="corridasTableBody"></tbody>
         </table>
+        <button onclick="copiarChavePix()">Copiar chave Pix<br><b>64992527786</b></button>
+        <button onclick="gerarImagem()">Exportar como Cupom</button>
     </div>
-    
+
     <script>
         const VALOR_UNITARIO = 10.25;
 
@@ -165,48 +178,61 @@
             e.preventDefault();
             const descricao = document.getElementById('descricao').value;
             const tipo = document.getElementById('tipo').value;
+            const observacao = document.getElementById('observacao').value || 'N/A';
             const dataHora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 
             let corridas = JSON.parse(localStorage.getItem('corridas')) || [];
-            corridas.push({ descricao, tipo, valor: VALOR_UNITARIO, dataHora });
+            corridas.push({ descricao, tipo, observacao, valor: VALOR_UNITARIO, dataHora });
             localStorage.setItem('corridas', JSON.stringify(corridas));
             
-            atualizarTotal();
+            atualizarTotais();
             carregarCorridas();
         });
 
-        function atualizarTotal() {
-            let corridas = JSON.parse(localStorage.getItem('corridas')) || [];
-            let total = corridas.reduce((sum, corrida) => sum + corrida.valor, 0);
-            let totalIda = corridas.filter(corrida => corrida.tipo === 'ida').length;
-            let totalVolta = corridas.filter(corrida => corrida.tipo === 'volta').length;
-            document.getElementById('total').textContent = total.toFixed(2).replace('.', ',');
+        function atualizarTotais() {
+            const corridas = JSON.parse(localStorage.getItem('corridas')) || [];
+            const totalIda = corridas.filter(c => c.tipo === 'ida').length;
+            const totalVolta = corridas.filter(c => c.tipo === 'volta').length;
+            const valorTotal = corridas.reduce((sum, c) => sum + c.valor, 0);
+
             document.getElementById('totalIda').textContent = totalIda;
             document.getElementById('totalVolta').textContent = totalVolta;
+            document.getElementById('total').textContent = valorTotal.toFixed(2).replace('.', ',');
         }
 
         function carregarCorridas() {
-            let corridas = JSON.parse(localStorage.getItem('corridas')) || [];
             const tbody = document.getElementById('corridasTableBody');
             tbody.innerHTML = '';
+            const corridas = JSON.parse(localStorage.getItem('corridas')) || [];
             corridas.forEach((corrida, index) => {
                 let tr = document.createElement('tr');
-                tr.innerHTML = `<td>${corrida.descricao}</td><td>${corrida.tipo}</td><td>${corrida.dataHora}</td><td>R$ ${corrida.valor.toFixed(2).replace('.', ',')}</td><td><button class="delete-button" onclick="excluirCorrida(${index})">🗑️</button></td>`;
+                tr.innerHTML = `
+                    <td><input value="${corrida.descricao}" onchange="editarCorrida(${index}, 'descricao', this.value)"></td>
+                    <td><select onchange="editarCorrida(${index}, 'tipo', this.value)">
+                          <option value="ida" ${corrida.tipo === 'ida' ? 'selected' : ''}>Ida</option>
+                          <option value="volta" ${corrida.tipo === 'volta' ? 'selected' : ''}>Volta</option>
+                        </select>
+                    </td>
+                    <td><input value="${corrida.observacao}" onchange="editarCorrida(${index}, 'observacao', this.value)"></td>
+                    <td>${corrida.dataHora}</td>
+                    <td>R$ ${corrida.valor.toFixed(2).replace('.', ',')}</td>
+                    <td><button onclick="excluirCorrida(${index})">Excluir</button></td>`;
                 tbody.appendChild(tr);
             });
+        }
+
+        function editarCorrida(index, campo, valor) {
+            let corridas = JSON.parse(localStorage.getItem('corridas')) || [];
+            corridas[index][campo] = valor;
+            localStorage.setItem('corridas', JSON.stringify(corridas));
+            atualizarTotais();
         }
 
         function excluirCorrida(index) {
             let corridas = JSON.parse(localStorage.getItem('corridas')) || [];
             corridas.splice(index, 1);
             localStorage.setItem('corridas', JSON.stringify(corridas));
-            atualizarTotal();
-            carregarCorridas();
-        }
-
-        function limparCorridas() {
-            localStorage.removeItem('corridas');
-            atualizarTotal();
+            atualizarTotais();
             carregarCorridas();
         }
 
@@ -214,13 +240,20 @@
             const chavePix = '64992527786';
             navigator.clipboard.writeText(chavePix).then(() => {
                 alert('Chave Pix copiada!');
-            }, () => {
-                alert('Erro ao copiar a chave Pix.');
+            });
+        }
+function gerarImagem() {
+            const recibo = document.getElementById('recibo');
+            html2canvas(recibo).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'recibo.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
             });
         }
 
-        // Atualiza o total e carrega as corridas ao carregar a página
-        atualizarTotal();
+        // Atualizar os totais e carregar os dados ao abrir a página
+        atualizarTotais();
         carregarCorridas();
     </script>
 </body>
