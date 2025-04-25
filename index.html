@@ -167,12 +167,12 @@
             </thead>
             <tbody id="corridasTableBody"></tbody>
         </table>
-        <button onclick="copiarChavePix()">Copiar chave Pix<br><b>64992527786</b></button>
+        <button onclick="copiarChavePix()">Copiar chave Pix<br><b>64993409052</b></button>
         <button onclick="gerarImagem()">Exportar como Cupom</button>
     </div>
 
     <script>
-        const VALOR_UNITARIO = 10.25;
+        const VALOR_UNITARIO = 10.00;
 
         document.getElementById('corridaForm').addEventListener('submit', function (e) {
             e.preventDefault();
@@ -251,8 +251,6 @@ function gerarImagem() {
                 link.click();
             });
         }
-
-        // Atualizar os totais e carregar os dados ao abrir a página
         atualizarTotais();
         carregarCorridas();
     </script>
