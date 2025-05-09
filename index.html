@@ -34,13 +34,23 @@
             display: block;
             margin-bottom: 5px;
         }
-        input, select, button {
+        input, select, button, textarea {
             width: 100%;
             padding: 10px;
             margin-bottom: 15px;
             border-radius: 5px;
             border: 1px solid #ccc;
             box-sizing: border-box;
+        }
+        select {
+            background-color: #fff8e1;
+            border: 2px solid #ff9800;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            background-color: #fff8e1;
+            border: 2px solid #ff9800;
         }
         button {
             background-color: #4CAF50;
@@ -110,7 +120,7 @@
             h1 {
                 font-size: 1.2em;
             }
-            input, select, button {
+            input, select, button, textarea {
                 font-size: 0.8em;
                 padding: 6px;
             }
@@ -126,7 +136,7 @@
         <form id="corridaForm">
             <label for="descricao">Descrição:</label>
             <input type="text" id="descricao" name="descricao" required>
-            
+
             <label for="tipo">Tipo:</label>
             <select id="tipo" name="tipo" required>
                 <option value="ida">Ida</option>
@@ -134,7 +144,7 @@
             </select>
 
             <label for="observacao">Observação (Opcional):</label>
-            <input type="text" id="observacao" name="observacao">
+            <textarea id="observacao" name="observacao" placeholder="Informe detalhes importantes..."></textarea>
 
             <button type="submit">Registrar Corrida</button>
         </form>
@@ -184,7 +194,6 @@
             let corridas = JSON.parse(localStorage.getItem('corridas')) || [];
             corridas.push({ descricao, tipo, observacao, valor: VALOR_UNITARIO, dataHora });
             localStorage.setItem('corridas', JSON.stringify(corridas));
-            
             atualizarTotais();
             carregarCorridas();
         });
@@ -208,12 +217,12 @@
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><input value="${corrida.descricao}" onchange="editarCorrida(${index}, 'descricao', this.value)"></td>
-                    <td><select onchange="editarCorrida(${index}, 'tipo', this.value)">
+                    <td><select style="background-color:#fff8e1; border:2px solid #ff9800" onchange="editarCorrida(${index}, 'tipo', this.value)">
                           <option value="ida" ${corrida.tipo === 'ida' ? 'selected' : ''}>Ida</option>
                           <option value="volta" ${corrida.tipo === 'volta' ? 'selected' : ''}>Volta</option>
                         </select>
                     </td>
-                    <td><input value="${corrida.observacao}" onchange="editarCorrida(${index}, 'observacao', this.value)"></td>
+                    <td><textarea onchange="editarCorrida(${index}, 'observacao', this.value)">${corrida.observacao}</textarea></td>
                     <td>${corrida.dataHora}</td>
                     <td>R$ ${corrida.valor.toFixed(2).replace('.', ',')}</td>
                     <td><button onclick="excluirCorrida(${index})">Excluir</button></td>`;
@@ -242,7 +251,8 @@
                 alert('Chave Pix copiada!');
             });
         }
-function gerarImagem() {
+
+        function gerarImagem() {
             const recibo = document.getElementById('recibo');
             html2canvas(recibo).then(canvas => {
                 const link = document.createElement('a');
@@ -251,6 +261,7 @@ function gerarImagem() {
                 link.click();
             });
         }
+
         atualizarTotais();
         carregarCorridas();
     </script>
