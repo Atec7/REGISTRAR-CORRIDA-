@@ -4,11 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Registro de Corridas</title>
-  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <style>
     :root {
-      --verde: #4CAF50;
-      --laranja: #ff9800;
+      --verde: #123;
+      --laranja: red;
       --bg-claro: #f0f2f5;
     }
 
@@ -161,14 +162,26 @@
         font-size: 1.3em;
       }
     }
+    p{
+      text-align: center;
+    }
+    .cad{
+      padding: 40px;
+      border-radius: 20px;
+      font-size: 33px;
+    }
+    .btn.cad{
+      font-size: 30px;
+    }
   </style>
 </head>
 <body>
   <div class="container" id="recibo">
-    <h1>Registro de Corridas<br>Desenvolvido por: Arnaldo S. Lima</h1>
+    <h1>Registro de Corridas</h1>
+    <br><p>Desenvolvido por: Arnaldo S. Lima</p>
 
     <form id="corridaForm">
-      <label for="descricao">Descrição:</label>
+      <label for="descricao" required>Descrição:</label>
       <input type="text" id="descricao" name="descricao" required />
 
       <label for="tipo">Tipo:</label>
@@ -177,10 +190,10 @@
         <option value="volta">Volta</option>
       </select>
 
-      <label for="observacao">Observação (Opcional):</label>
-      <textarea id="observacao" name="observacao" placeholder="Informe detalhes importantes..."></textarea>
+      <label for="observacao">Observação:</label>
+      <textarea id="observacao" name="observacao" placeholder=" 📆 🚗✍️ Detalhes importantes..."></textarea>
 
-      <button type="submit">Registrar Corrida</button>
+      <button class="cad" type="submit"><b class="btn.cad">🚨<br>Registrar Corrida</b></button>
     </form>
 
     <div class="cards">
@@ -214,7 +227,7 @@
 
     <div class="bottom-buttons">
       <button onclick="copiarChavePix()">Copiar chave Pix<br><b>64993409052</b></button>
-      <button onclick="gerarImagem()">Exportar como Cupom</button>
+      <button onclick="gerarPDF()">Exportar como PDF</button>
     </div>
   </div>
 
@@ -277,7 +290,6 @@
     function editarCorrida(index, campo, valor) {
       let corridas = JSON.parse(localStorage.getItem('corridas')) || [];
       corridas[index][campo] = valor;
-      // Atualiza valor se tipo for alterado
       if (campo === 'tipo') {
         corridas[index].valor = valor === 'ida' ? VALOR_IDA : VALOR_VOLTA;
       }
@@ -301,14 +313,75 @@
       });
     }
 
-    function gerarImagem() {
-      const recibo = document.getElementById('recibo');
-      html2canvas(recibo, { scale: 3 }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = 'recibo.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+    async function gerarPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const corridas = JSON.parse(localStorage.getItem('corridas')) || [];
+
+      if (corridas.length === 0) {
+        alert("Nenhuma corrida registrada para exportar.");
+        return;
+      }
+
+      const nomeCliente = "Arnaldo de Sousa Lima";
+      const cpfCliente = "***.929.***-77";
+      const formaPagamento = "Pix";
+
+      const datas = corridas.map(c => new Date(c.dataHora));
+      const dataInicio = new Date(Math.min(...datas));
+      const dataFim = new Date(Math.max(...datas));
+      const diasUteis = [...new Set(corridas.map(c => new Date(c.dataHora).toDateString()))].length;
+      const formatarData = data => data.toLocaleDateString("pt-BR");
+      const periodo = `${formatarData(dataInicio)} até ${formatarData(dataFim)}`;
+
+      const totalIdas = corridas.filter(c => c.tipo === 'ida').length;
+      const totalVoltas = corridas.filter(c => c.tipo === 'volta').length;
+      const totalIdaValor = totalIdas * VALOR_IDA;
+      const totalVoltaValor = totalVoltas * VALOR_VOLTA;
+      const totalGeral = totalIdaValor + totalVoltaValor;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text("RECIBO DE CORRIDAS — COMPROVANTE DE REGISTROS DIARIOS", 105, 15, null, null, "center");
+
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Cliente: ${nomeCliente}`, 14, 30);
+      doc.text(`CPF: ${cpfCliente}`, 14, 37);
+      doc.text(`Forma de Pagamento: ${formaPagamento}`, 14, 44);
+      doc.text(`Período: ${periodo}`, 14, 51);
+
+      const rows = corridas.map(c => [
+        c.descricao,
+        c.tipo.charAt(0).toUpperCase() + c.tipo.slice(1),
+        c.observacao,
+        c.dataHora,
+        `R$ ${parseFloat(c.valor).toFixed(2).replace('.', ',')}`
+      ]);
+
+      doc.autoTable({
+        startY: 60,
+        head: [['Descrição', 'Tipo', 'Observação', 'Data e Hora', 'Valor']],
+        body: rows,
+        styles: { fontSize: 9, cellPadding: 2 },
+        headStyles: { fillColor: [76, 175, 80] }
       });
+
+      const finalY = doc.lastAutoTable.finalY + 5;
+      doc.setFont("helvetica", "bold");
+      doc.text("Resumo do Período:", 14, finalY + 5);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Total de dias com corridas: ${diasUteis}`, 14, finalY + 12);
+      doc.text(`Total de idas: ${totalIdas} (R$ ${totalIdaValor.toFixed(2).replace('.', ',')})`, 14, finalY + 19);
+      doc.text(`Total de voltas: ${totalVoltas} (R$ ${totalVoltaValor.toFixed(2).replace('.', ',')})`, 14, finalY + 26);
+      doc.text(`Total geral: R$ ${totalGeral.toFixed(2).replace('.', ',')}`, 14, finalY + 33);
+
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text("www.atecseven.com.br", 14, finalY + 45);
+      doc.text("Atecseven Tecnologia 2025 — Softwares E Soluções Tecnológicas", 14, finalY + 50);
+
+      doc.save("recibo_corridas.pdf");
     }
 
     atualizarTotais();
