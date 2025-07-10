@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Registro de Corridas</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -19,7 +19,7 @@
 
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: var(--bg);
       color: var(--black);
     }
@@ -29,13 +29,15 @@
       color: var(--white);
       padding: 20px;
       text-align: center;
-      font-size: 1.5em;
+      font-size: 1.6em;
+      font-weight: 700;
+      user-select: none;
     }
 
     main {
       max-width: 700px;
       margin: 30px auto;
-      padding: 0 20px;
+      padding: 0 20px 40px;
     }
 
     form, .projecao, table {
@@ -46,10 +48,11 @@
       margin-bottom: 30px;
     }
 
-    form label, .projecao label {
+    label {
       display: block;
-      margin: 12px 0 5px;
+      margin: 12px 0 6px;
       font-weight: 600;
+      user-select: none;
     }
 
     input, select, textarea {
@@ -59,6 +62,8 @@
       border-radius: var(--radius);
       font-size: 1em;
       margin-bottom: 15px;
+      font-family: inherit;
+      box-sizing: border-box;
     }
 
     input[type="date"] {
@@ -77,10 +82,12 @@
       border: none;
       padding: 14px;
       border-radius: var(--radius);
-      font-size: 1em;
+      font-size: 1.1em;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: background-color 0.3s ease;
       width: 100%;
+      user-select: none;
+      font-weight: 600;
     }
 
     .btn:hover {
@@ -89,6 +96,7 @@
 
     .btn.secondary {
       background: var(--black);
+      margin-top: 10px;
     }
 
     .btn.secondary:hover {
@@ -99,6 +107,7 @@
       display: flex;
       gap: 15px;
       flex-wrap: wrap;
+      margin-bottom: 30px;
     }
 
     .card {
@@ -109,49 +118,62 @@
       box-shadow: var(--shadow);
       padding: 20px;
       text-align: center;
+      user-select: none;
     }
 
     .card h4 {
       margin: 0 0 8px;
+      font-weight: 700;
+      font-size: 1.1em;
+      color: var(--orange-dark);
     }
 
     .card span {
-      font-size: 1.4em;
-      font-weight: bold;
-      color: var(--orange-dark);
+      font-size: 1.6em;
+      font-weight: 700;
+      color: var(--orange);
     }
 
     .actions {
       display: flex;
       flex-direction: column;
       gap: 12px;
+      margin-bottom: 30px;
     }
 
     .projecao h3 {
       margin-top: 0;
+      font-weight: 700;
+      color: var(--orange-dark);
+      user-select: none;
     }
 
     .projecao p {
       margin-top: 10px;
-      font-weight: bold;
+      font-weight: 700;
       color: var(--orange-dark);
+      user-select: none;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       overflow: hidden;
+      font-size: 0.9em;
     }
 
     th, td {
       padding: 10px;
       text-align: center;
       border: 1px solid #ddd;
+      vertical-align: middle;
     }
 
     th {
       background: var(--orange);
       color: var(--white);
+      font-weight: 700;
+      user-select: none;
     }
 
     #toast {
@@ -167,6 +189,9 @@
       pointer-events: none;
       transition: all 0.4s ease;
       z-index: 9999;
+      font-weight: 600;
+      user-select: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
     }
 
     #toast.show {
@@ -178,6 +203,9 @@
       .cards {
         flex-direction: column;
       }
+      .card {
+        flex: 1 1 100%;
+      }
     }
   </style>
 </head>
@@ -185,99 +213,116 @@
   <header>🚕 Registro de Corridas</header>
   <main>
     <form id="corridaForm">
-      <label>Descrição:</label>
-      <input type="text" id="descricao" required placeholder="Motorista">
+      <label for="descricao">Descrição:</label>
+      <input type="text" id="descricao" required placeholder="Ex: Ida para trabalho" autocomplete="off" />
 
-      <label>Tipo:</label>
+      <label for="tipo">Tipo:</label>
       <select id="tipo" required>
         <option value="ida">Ida</option>
         <option value="volta">Volta</option>
       </select>
 
-      <label>Observação:</label>
+      <label for="observacao">Observação:</label>
       <textarea id="observacao" placeholder="Detalhes importantes..."></textarea>
 
       <button type="submit" class="btn">Registrar Corrida</button>
     </form>
 
-    <div class="cards">
+    <div class="cards" aria-label="Resumo das corridas">
       <div class="card"><h4>Total Idas</h4><span id="totalIda">0</span></div>
       <div class="card"><h4>Total Voltas</h4><span id="totalVolta">0</span></div>
       <div class="card"><h4>Total Geral</h4><span id="total">R$ 0,00</span></div>
     </div>
 
-    <div class="actions">
+    <div class="actions" role="group" aria-label="Ações do usuário">
       <button class="btn secondary" onclick="gerarPDF()">Exportar PDF</button>
       <button class="btn secondary" onclick="limparRegistros()">Limpar Registros</button>
     </div>
 
-    <div class="projecao">
+    <section class="projecao" aria-label="Projeção de pagamento">
       <h3>💰 Projeção de Pagamento</h3>
-      <label>Data Inicial:</label>
-      <input type="date" id="dataInicio">
-      <label>Data Final:</label>
-      <input type="date" id="dataFinal">
+      <label for="dataInicio">Data Inicial:</label>
+      <input type="date" id="dataInicio" />
+      <label for="dataFinal">Data Final:</label>
+      <input type="date" id="dataFinal" />
       <button class="btn secondary" onclick="calcularProjecao()">Calcular Projeção</button>
-      <p id="resultadoProjecao"></p>
-    </div>
+      <p id="resultadoProjecao" aria-live="polite" style="min-height: 24px;"></p>
+    </section>
 
-    <table>
+    <table aria-label="Tabela de corridas registradas">
       <thead>
         <tr>
           <th>Descrição</th>
           <th>Tipo</th>
-          <th>Data</th>
-          <th>Valor</th>
+          <th>Observação</th>
+          <th>Data e Hora</th>
+          <th>Valor (R$)</th>
         </tr>
       </thead>
       <tbody id="corridasTableBody"></tbody>
     </table>
   </main>
 
-  <div id="toast"></div>
+  <div id="toast" role="alert" aria-live="assertive"></div>
 
   <script>
     const VALOR_IDA = 10.00;
     const VALOR_VOLTA = 15.00;
-    const VALOR_DIA_UTIL = VALOR_IDA + VALOR_VOLTA;
+    const VALOR_DIA_UTIL = VALOR_IDA + VALOR_VOLTA; // 25
 
-    document.getElementById('corridaForm').addEventListener('submit', function(e) {
+    // Registrar corrida
+    document.getElementById('corridaForm').addEventListener('submit', e => {
       e.preventDefault();
-      const descricao = document.getElementById('descricao').value;
+      const descricao = document.getElementById('descricao').value.trim();
       const tipo = document.getElementById('tipo').value;
-      const observacao = document.getElementById('observacao').value;
+      const observacao = document.getElementById('observacao').value.trim() || '—';
+      if (!descricao) {
+        showToast('Descrição é obrigatória.');
+        return;
+      }
+
       const dataHora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
       const valor = tipo === 'ida' ? VALOR_IDA : VALOR_VOLTA;
 
       let corridas = JSON.parse(localStorage.getItem('corridas')) || [];
       corridas.push({ descricao, tipo, observacao, valor, dataHora });
       localStorage.setItem('corridas', JSON.stringify(corridas));
+
       atualizar();
-      showToast('Corrida registrada!');
-      this.reset();
+      showToast('Corrida registrada com sucesso!');
+      e.target.reset();
     });
 
+    // Atualiza dados na tela
     function atualizar() {
       const corridas = JSON.parse(localStorage.getItem('corridas')) || [];
       document.getElementById('totalIda').innerText = corridas.filter(c => c.tipo === 'ida').length;
       document.getElementById('totalVolta').innerText = corridas.filter(c => c.tipo === 'volta').length;
-      document.getElementById('total').innerText = 'R$ ' + corridas.reduce((sum, c) => sum + c.valor, 0).toFixed(2).replace('.', ',');
+      const totalGeral = corridas.reduce((acc, c) => acc + c.valor, 0);
+      document.getElementById('total').innerText = 'R$ ' + totalGeral.toFixed(2).replace('.', ',');
 
       const tbody = document.getElementById('corridasTableBody');
       tbody.innerHTML = '';
       corridas.forEach(c => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${c.descricao}</td><td>${c.tipo}</td><td>${c.dataHora}</td><td>R$ ${c.valor.toFixed(2).replace('.', ',')}</td>`;
+        tr.innerHTML = `
+          <td>${c.descricao}</td>
+          <td>${c.tipo.charAt(0).toUpperCase() + c.tipo.slice(1)}</td>
+          <td>${c.observacao}</td>
+          <td>${c.dataHora}</td>
+          <td>R$ ${c.valor.toFixed(2).replace('.', ',')}</td>
+        `;
         tbody.appendChild(tr);
       });
     }
 
+    // Projeção
     function calcularProjecao() {
       const inicioStr = document.getElementById('dataInicio').value;
       const fimStr = document.getElementById('dataFinal').value;
 
       if (!inicioStr || !fimStr) {
-        showToast('Selecione as datas!');
+        showToast('Selecione as duas datas!');
         return;
       }
 
@@ -285,41 +330,41 @@
       const dataFim = new Date(fimStr + 'T00:00:00');
 
       if (dataFim < dataInicio) {
-        showToast('Data final deve ser >= inicial.');
+        showToast('Data final deve ser maior ou igual à inicial.');
         return;
       }
 
       let diasUteis = 0;
       let diaAtual = new Date(dataInicio);
-
       while (diaAtual <= dataFim) {
-        const dia = diaAtual.getDay();
-        if (dia !== 0 && dia !== 6) diasUteis++;
+        const diaSemana = diaAtual.getDay();
+        if (diaSemana !== 0 && diaSemana !== 6) diasUteis++;
         diaAtual.setDate(diaAtual.getDate() + 1);
       }
 
       const total = diasUteis * VALOR_DIA_UTIL;
+      const resultado = `De ${inicioStr} até ${fimStr} → ${diasUteis} dias úteis → Valor: R$ ${total.toFixed(2).replace('.', ',')}`;
 
-      document.getElementById('resultadoProjecao').innerText =
-        `De ${inicioStr} até ${fimStr} | ${diasUteis} dias úteis | R$ ${total.toFixed(2).replace('.', ',')}`;
-
-      showToast(`Projeção: ${diasUteis} dias úteis → R$ ${total.toFixed(2)}`);
+      document.getElementById('resultadoProjecao').innerText = resultado;
+      showToast('Projeção calculada com sucesso!');
     }
 
+    // Limpar registros
     function limparRegistros() {
-      if (confirm('Limpar TODOS os registros?')) {
+      if (confirm('Tem certeza que deseja limpar TODOS os registros?')) {
         localStorage.removeItem('corridas');
         atualizar();
-        showToast('Registros apagados!');
+        showToast('Registros apagados com sucesso!');
       }
     }
 
+    // Gerar PDF
     async function gerarPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       const corridas = JSON.parse(localStorage.getItem('corridas')) || [];
       if (corridas.length === 0) {
-        showToast('Sem corridas.');
+        showToast('Nenhuma corrida registrada para exportar.');
         return;
       }
 
@@ -344,12 +389,16 @@
       doc.text(`Período: ${dataInicio.toLocaleDateString()} a ${dataFim.toLocaleDateString()}`, 14, 60);
 
       const rows = corridas.map(c => [
-        c.descricao, c.tipo, c.dataHora, `R$ ${c.valor.toFixed(2).replace('.', ',')}`
+        c.descricao,
+        c.tipo.charAt(0).toUpperCase() + c.tipo.slice(1),
+        c.observacao || '—',
+        c.dataHora,
+        `R$ ${c.valor.toFixed(2).replace('.', ',')}`
       ]);
 
       doc.autoTable({
         startY: 70,
-        head: [['Descrição', 'Tipo', 'Data', 'Valor']],
+        head: [['Descrição', 'Tipo', 'Observação', 'Data e Hora', 'Valor']],
         body: rows,
         styles: { fontSize: 8 }
       });
@@ -361,17 +410,22 @@
 
       doc.text(`Atecseven Tecnologia 2025 - Todos os direitos reservados.`, 14, finalY + 25);
 
-      doc.save("corridas.pdf");
-      showToast('PDF gerado!');
+      doc.save("recibo_corridas.pdf");
+      showToast('PDF gerado com sucesso!');
     }
 
+    // Toast para mensagens rápidas
     function showToast(msg) {
       const toast = document.getElementById('toast');
       toast.innerText = msg;
-      toast.className = 'show';
-      setTimeout(() => { toast.className = toast.className.replace('show', ''); }, 3000);
+      toast.classList.add('show');
+      clearTimeout(toast.timeout);
+      toast.timeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
     }
 
+    // Inicializa a tabela e cards
     atualizar();
   </script>
 </body>
