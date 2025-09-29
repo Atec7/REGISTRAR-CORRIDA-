@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Registro de Corridas</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super App de Corridas</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       --orange: #ff6f00;
@@ -13,420 +14,246 @@
       --black: #121212;
       --white: #fff;
       --bg: #f5f5f5;
-      --radius: 10px;
+      --radius: 12px;
       --shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
-
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: var(--bg);
-      color: var(--black);
-    }
-
-    header {
-      background: var(--black);
-      color: var(--white);
-      padding: 20px;
-      text-align: center;
-      font-size: 1.6em;
-      font-weight: 700;
-      user-select: none;
-    }
-
-    main {
-      max-width: 700px;
-      margin: 30px auto;
-      padding: 0 20px 40px;
-    }
-
-    form, .projecao, table {
-      background: var(--white);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 20px;
-      margin-bottom: 30px;
-    }
-
-    label {
-      display: block;
-      margin: 12px 0 6px;
-      font-weight: 600;
-      user-select: none;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: var(--radius);
-      font-size: 1em;
-      margin-bottom: 15px;
-      font-family: inherit;
-      box-sizing: border-box;
-    }
-
-    input[type="date"] {
-      background: #fffbea;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-
-    .btn {
-      display: inline-block;
-      background: var(--orange);
-      color: var(--white);
-      border: none;
-      padding: 14px;
-      border-radius: var(--radius);
-      font-size: 1.1em;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      width: 100%;
-      user-select: none;
-      font-weight: 600;
-    }
-
-    .btn:hover {
-      background: var(--orange-dark);
-    }
-
-    .btn.secondary {
-      background: var(--black);
-      margin-top: 10px;
-    }
-
-    .btn.secondary:hover {
-      background: #000;
-    }
-
-    .cards {
-      display: flex;
-      gap: 15px;
-      flex-wrap: wrap;
-      margin-bottom: 30px;
-    }
-
-    .card {
-      flex: 1 1 calc(33% - 10px);
-      background: var(--white);
-      border-left: 6px solid var(--orange);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 20px;
-      text-align: center;
-      user-select: none;
-    }
-
-    .card h4 {
-      margin: 0 0 8px;
-      font-weight: 700;
-      font-size: 1.1em;
-      color: var(--orange-dark);
-    }
-
-    .card span {
-      font-size: 1.6em;
-      font-weight: 700;
-      color: var(--orange);
-    }
-
-    .actions {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 30px;
-    }
-
-    .projecao h3 {
-      margin-top: 0;
-      font-weight: 700;
-      color: var(--orange-dark);
-      user-select: none;
-    }
-
-    .projecao p {
-      margin-top: 10px;
-      font-weight: 700;
-      color: var(--orange-dark);
-      user-select: none;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      overflow: hidden;
-      font-size: 0.9em;
-    }
-
-    th, td {
-      padding: 10px;
-      text-align: center;
-      border: 1px solid #ddd;
-      vertical-align: middle;
-    }
-
-    th {
-      background: var(--orange);
-      color: var(--white);
-      font-weight: 700;
-      user-select: none;
-    }
-
-    #toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--black);
-      color: var(--white);
-      padding: 12px 25px;
-      border-radius: 30px;
-      opacity: 0;
-      pointer-events: none;
-      transition: all 0.4s ease;
-      z-index: 9999;
-      font-weight: 600;
-      user-select: none;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-    }
-
-    #toast.show {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    @media (max-width: 600px) {
-      .cards {
-        flex-direction: column;
-      }
-      .card {
-        flex: 1 1 100%;
-      }
-    }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--black); transition: .3s;}
+    header { background: var(--black); color: var(--white); padding: 20px; text-align: center; font-size:1.5em; font-weight:700; position:sticky; top:0; z-index:1000;}
+    main { max-width:700px; margin:20px auto; padding:0 15px 40px;}
+    form, .projecao, table, .observacoes-gerais { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 25px;}
+    label { display:block; margin:10px 0 5px; font-weight:600;}
+    input, select, textarea { width:100%; padding:12px; border:1px solid #ddd; border-radius: var(--radius); font-size:1em; margin-bottom:15px; box-sizing:border-box;}
+    textarea { min-height:80px; resize: vertical;}
+    .btn { display:inline-block; background: var(--orange); color: var(--white); border:none; padding:14px; border-radius: var(--radius); font-size:1.1em; cursor:pointer; transition:.3s; width:100%; font-weight:600; margin-top:5px;}
+    .btn:hover { background: var(--orange-dark);}
+    .btn.secondary { background: var(--black);}
+    .btn.secondary:hover { background: #000;}
+    .cards { display:flex; flex-wrap:wrap; gap:15px; margin-bottom:25px;}
+    .card { flex:1 1 calc(33% - 10px); background: var(--white); border-left:6px solid var(--orange); border-radius: var(--radius); padding:15px; text-align:center; box-shadow: var(--shadow);}
+    .card h4 { margin:0 0 8px; color: var(--orange-dark); font-weight:700;}
+    .card span { font-size:1.6em; font-weight:700; color: var(--orange);}
+    table { width:100%; border-collapse:collapse; font-size:0.9em;}
+    th, td { padding:8px; text-align:center; border:1px solid #ddd;}
+    th { background: var(--orange); color: var(--white); font-weight:700;}
+    .action-btn { padding:4px 8px; border:none; border-radius:6px; cursor:pointer; font-size:0.85em; margin:1px; }
+    .edit-btn { background:#1976d2; color:#fff;}
+    .delete-btn { background:#d32f2f; color:#fff;}
+    #toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background: var(--black); color:#fff; padding:12px 25px; border-radius:30px; opacity:0; pointer-events:none; transition:.4s; z-index:9999; font-weight:600; box-shadow:0 2px 8px rgba(0,0,0,0.4);}
+    #toast.show { opacity:1; pointer-events:auto;}
+    @media (max-width:600px){ .cards{flex-direction:column;} .card{flex:1 1 100%;} }
   </style>
 </head>
 <body>
-  <header>🚕 Registro de Corridas</header>
-  <main>
-    <form id="corridaForm">
-      <label for="descricao">Descrição:</label>
-      <input type="text" id="descricao" required placeholder="Ex: Ida para trabalho" autocomplete="off" />
+<header>🚕 Super Registro de Corridas</header>
+<main>
+  <form id="corridaForm">
+    <input type="hidden" id="editIndex" value="">
+    <label for="descricao">Descrição:</label>
+    <input type="text" id="descricao" required placeholder="Ex: Ida para trabalho">
+    <label for="tipo">Tipo:</label>
+    <select id="tipo" required>
+      <option value="ida">Ida</option>
+      <option value="volta">Volta</option>
+    </select>
+    <label for="observacao">Observação:</label>
+    <textarea id="observacao" placeholder="Detalhes importantes..."></textarea>
+    <button type="submit" class="btn">Registrar Corrida</button>
+  </form>
 
-      <label for="tipo">Tipo:</label>
-      <select id="tipo" required>
-        <option value="ida">Ida</option>
-        <option value="volta">Volta</option>
-      </select>
+  <div class="observacoes-gerais">
+    <label for="observacoesGerais">📌 Observações Gerais:</label>
+    <textarea id="observacoesGerais" placeholder="Estas observações aparecerão no relatório..."></textarea>
+  </div>
 
-      <label for="observacao">Observação:</label>
-      <textarea id="observacao" placeholder="Detalhes importantes..."></textarea>
+  <div class="cards">
+    <div class="card"><h4>Total Idas</h4><span id="totalIda">0</span></div>
+    <div class="card"><h4>Total Voltas</h4><span id="totalVolta">0</span></div>
+    <div class="card"><h4>Total Geral</h4><span id="total">R$ 0,00</span></div>
+  </div>
 
-      <button type="submit" class="btn">Registrar Corrida</button>
-    </form>
+  <div class="projecao">
+    <h3>💰 Projeção de Pagamento</h3>
+    <label for="dataInicio">Data Inicial:</label>
+    <input type="date" id="dataInicio">
+    <label for="dataFinal">Data Final:</label>
+    <input type="date" id="dataFinal">
+    <button class="btn secondary" onclick="calcularProjecao()">Calcular Projeção</button>
+    <p id="resultadoProjecao" style="min-height:24px;"></p>
+  </div>
 
-    <div class="cards" aria-label="Resumo das corridas">
-      <div class="card"><h4>Total Idas</h4><span id="totalIda">0</span></div>
-      <div class="card"><h4>Total Voltas</h4><span id="totalVolta">0</span></div>
-      <div class="card"><h4>Total Geral</h4><span id="total">R$ 0,00</span></div>
-    </div>
+  <div class="actions">
+    <button class="btn secondary" onclick="gerarPDF()">Exportar PDF</button>
+    <button class="btn secondary" onclick="limparRegistros()">Limpar Registros</button>
+  </div>
 
-    <div class="actions" role="group" aria-label="Ações do usuário">
-      <button class="btn secondary" onclick="gerarPDF()">Exportar PDF</button>
-      <button class="btn secondary" onclick="limparRegistros()">Limpar Registros</button>
-    </div>
+  <canvas id="graficoCorridas" style="margin-bottom:25px;"></canvas>
 
-    <section class="projecao" aria-label="Projeção de pagamento">
-      <h3>💰 Projeção de Pagamento</h3>
-      <label for="dataInicio">Data Inicial:</label>
-      <input type="date" id="dataInicio" />
-      <label for="dataFinal">Data Final:</label>
-      <input type="date" id="dataFinal" />
-      <button class="btn secondary" onclick="calcularProjecao()">Calcular Projeção</button>
-      <p id="resultadoProjecao" aria-live="polite" style="min-height: 24px;"></p>
-    </section>
+  <table>
+    <thead>
+      <tr><th>Descrição</th><th>Tipo</th><th>Observação</th><th>Data e Hora</th><th>Valor (R$)</th><th>Ações</th></tr>
+    </thead>
+    <tbody id="corridasTableBody"></tbody>
+  </table>
+</main>
+<div id="toast"></div>
 
-    <table aria-label="Tabela de corridas registradas">
-      <thead>
-        <tr>
-          <th>Descrição</th>
-          <th>Tipo</th>
-          <th>Observação</th>
-          <th>Data e Hora</th>
-          <th>Valor (R$)</th>
-        </tr>
-      </thead>
-      <tbody id="corridasTableBody"></tbody>
-    </table>
-  </main>
+<script>
+const VALOR_IDA=10.25,VALOR_VOLTA=15.0,VALOR_DIA_UTIL=VALOR_IDA+VALOR_VOLTA;
 
-  <div id="toast" role="alert" aria-live="assertive"></div>
+const showToast=msg=>{
+  const t=document.getElementById('toast');
+  t.innerText=msg;
+  t.classList.add('show');
+  clearTimeout(t.timeout);
+  t.timeout=setTimeout(()=>t.classList.remove('show'),3000);
+};
 
-  <script>
-    const VALOR_IDA = 10.25;
-    const VALOR_VOLTA = 15.00;
-    const VALOR_DIA_UTIL = VALOR_IDA + VALOR_VOLTA;
+document.getElementById('corridaForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const descricao=document.getElementById('descricao').value.trim();
+  const tipo=document.getElementById('tipo').value;
+  const observacao=document.getElementById('observacao').value.trim()||'—';
+  const editIndex=document.getElementById('editIndex').value;
 
-    // Registrar corrida
-    document.getElementById('corridaForm').addEventListener('submit', e => {
-      e.preventDefault();
-      const descricao = document.getElementById('descricao').value.trim();
-      const tipo = document.getElementById('tipo').value;
-      const observacao = document.getElementById('observacao').value.trim() || '—';
-      if (!descricao) {
-        showToast('Descrição é obrigatória.');
-        return;
-      }
+  if(!descricao){ showToast('Descrição é obrigatória.'); return; }
 
-      const dataHora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
-      const valor = tipo === 'ida' ? VALOR_IDA : VALOR_VOLTA;
+  let corridas=JSON.parse(localStorage.getItem('corridas'))||[];
+  const dataHora=new Date().toLocaleString('pt-BR');
+  const valor=tipo==='ida'?VALOR_IDA:VALOR_VOLTA;
 
-      let corridas = JSON.parse(localStorage.getItem('corridas')) || [];
-      corridas.push({ descricao, tipo, observacao, valor, dataHora });
-      localStorage.setItem('corridas', JSON.stringify(corridas));
+  if(editIndex===''){
+    corridas.push({descricao,tipo,observacao,valor,dataHora});
+    showToast('Corrida registrada com sucesso!');
+  } else {
+    corridas[editIndex]={...corridas[editIndex],descricao,tipo,observacao,valor};
+    document.getElementById('editIndex').value='';
+    showToast('Corrida atualizada com sucesso!');
+  }
 
-      atualizar();
-      showToast('Corrida registrada com sucesso!');
-      e.target.reset();
-    });
+  localStorage.setItem('corridas',JSON.stringify(corridas));
+  e.target.reset();
+  atualizar();
+});
 
-    // Atualiza dados na tela
-    function atualizar() {
-      const corridas = JSON.parse(localStorage.getItem('corridas')) || [];
-      document.getElementById('totalIda').innerText = corridas.filter(c => c.tipo === 'ida').length;
-      document.getElementById('totalVolta').innerText = corridas.filter(c => c.tipo === 'volta').length;
-      const totalGeral = corridas.reduce((acc, c) => acc + c.valor, 0);
-      document.getElementById('total').innerText = 'R$ ' + totalGeral.toFixed(2).replace('.', ',');
+function atualizar(){
+  const corridas=JSON.parse(localStorage.getItem('corridas'))||[];
+  document.getElementById('totalIda').innerText=corridas.filter(c=>c.tipo==='ida').length;
+  document.getElementById('totalVolta').innerText=corridas.filter(c=>c.tipo==='volta').length;
+  const totalGeral=corridas.reduce((acc,c)=>acc+c.valor,0);
+  document.getElementById('total').innerText='R$ '+totalGeral.toFixed(2).replace('.',',');
 
-      const tbody = document.getElementById('corridasTableBody');
-      tbody.innerHTML = '';
-      corridas.forEach(c => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${c.descricao}</td>
-          <td>${c.tipo.charAt(0).toUpperCase() + c.tipo.slice(1)}</td>
-          <td>${c.observacao}</td>
-          <td>${c.dataHora}</td>
-          <td>R$ ${c.valor.toFixed(2).replace('.', ',')}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
+  const tbody=document.getElementById('corridasTableBody');
+  tbody.innerHTML='';
+  corridas.forEach((c,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>${c.descricao}</td>
+      <td>${c.tipo.charAt(0).toUpperCase()+c.tipo.slice(1)}</td>
+      <td>${c.observacao}</td>
+      <td>${c.dataHora}</td>
+      <td>R$ ${c.valor.toFixed(2).replace('.',',')}</td>
+      <td>
+        <button class="action-btn edit-btn" onclick="editar(${i})">Editar</button>
+        <button class="action-btn delete-btn" onclick="remover(${i})">Excluir</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
 
-    // Projeção
-    function calcularProjecao() {
-      const inicioStr = document.getElementById('dataInicio').value;
-      const fimStr = document.getElementById('dataFinal').value;
+  atualizarGrafico(corridas);
+}
 
-      if (!inicioStr || !fimStr) {
-        showToast('Selecione as duas datas!');
-        return;
-      }
+function editar(index){
+  const corridas=JSON.parse(localStorage.getItem('corridas'))||[];
+  const c=corridas[index];
+  document.getElementById('descricao').value=c.descricao;
+  document.getElementById('tipo').value=c.tipo;
+  document.getElementById('observacao').value=c.observacao;
+  document.getElementById('editIndex').value=index;
+  showToast('Modo edição ativado!');
+}
 
-      const dataInicio = new Date(inicioStr + 'T00:00:00');
-      const dataFim = new Date(fimStr + 'T00:00:00');
-
-      if (dataFim < dataInicio) {
-        showToast('Data final deve ser maior ou igual à inicial.');
-        return;
-      }
-
-      let diasUteis = 0;
-      let diaAtual = new Date(dataInicio);
-      while (diaAtual <= dataFim) {
-        const diaSemana = diaAtual.getDay();
-        if (diaSemana !== 0 && diaSemana !== 6) diasUteis++;
-        diaAtual.setDate(diaAtual.getDate() + 1);
-      }
-
-      const total = diasUteis * VALOR_DIA_UTIL;
-      const resultado = `De ${inicioStr} até ${fimStr} → ${diasUteis} dias úteis → Valor: R$ ${total.toFixed(2).replace('.', ',')}`;
-
-      document.getElementById('resultadoProjecao').innerText = resultado;
-      showToast('Projeção calculada com sucesso!');
-    }
-
-    // Limpar registros
-    function limparRegistros() {
-      if (confirm('Tem certeza que deseja limpar TODOS os registros?')) {
-        localStorage.removeItem('corridas');
-        atualizar();
-        showToast('Registros apagados com sucesso!');
-      }
-    }
-
-    // Gerar PDF
-    async function gerarPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const corridas = JSON.parse(localStorage.getItem('corridas')) || [];
-      if (corridas.length === 0) {
-        showToast('Nenhuma corrida registrada para exportar.');
-        return;
-      }
-
-      const agora = new Date().toLocaleString('pt-BR');
-      const datas = corridas.map(c => new Date(c.dataHora));
-      const dataInicio = new Date(Math.min(...datas));
-      const dataFim = new Date(Math.max(...datas));
-
-      const totalIdas = corridas.filter(c => c.tipo === 'ida').length;
-      const totalVoltas = corridas.filter(c => c.tipo === 'volta').length;
-      const totalGeral = corridas.reduce((sum, c) => sum + c.valor, 0);
-
-      doc.setFontSize(16);
-      doc.text("RECIBO DE CORRIDAS", 105, 15, null, null, "center");
-
-      doc.setFontSize(10);
-      doc.text(`Emitido em: ${agora}`, 14, 25);
-      doc.text(`Pagador: Arnaldo de Sousa Lima`, 14, 32);
-      doc.text(`CPF: ***.929.0**-77`, 14, 39);
-      doc.text(`Forma de pagamento: Pix`, 14, 46);
-      doc.text(`Contato: (64) 9 9295-2748`, 14, 53);
-      doc.text(`Período: ${dataInicio.toLocaleDateString()} a ${dataFim.toLocaleDateString()}`, 14, 60);
-
-      const rows = corridas.map(c => [
-        c.descricao,
-        c.tipo.charAt(0).toUpperCase() + c.tipo.slice(1),
-        c.observacao || '—',
-        c.dataHora,
-        `R$ ${c.valor.toFixed(2).replace('.', ',')}`
-      ]);
-
-      doc.autoTable({
-        startY: 70,
-        head: [['Descrição', 'Tipo', 'Observação', 'Data e Hora', 'Valor']],
-        body: rows,
-        styles: { fontSize: 8 }
-      });
-
-      const finalY = doc.lastAutoTable.finalY + 5;
-      doc.text(`Total Idas: ${totalIdas}`, 14, finalY + 5);
-      doc.text(`Total Voltas: ${totalVoltas}`, 14, finalY + 10);
-      doc.text(`Total Geral: R$ ${totalGeral.toFixed(2).replace('.', ',')}`, 14, finalY + 15);
-
-      doc.text(`Atecseven Tecnologia 2025 - Todos os direitos reservados.`, 14, finalY + 25);
-
-      doc.save("recibo_corridas.pdf");
-      showToast('PDF gerado com sucesso!');
-    }
-
-    // Toast para mensagens rápidas
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      toast.innerText = msg;
-      toast.classList.add('show');
-      clearTimeout(toast.timeout);
-      toast.timeout = setTimeout(() => {
-        toast.classList.remove('show');
-      }, 3000);
-    }
-
-    // Inicializa a tabela e cards
+function remover(index){
+  if(confirm('Deseja realmente excluir este registro?')){
+    let corridas=JSON.parse(localStorage.getItem('corridas'))||[];
+    corridas.splice(index,1);
+    localStorage.setItem('corridas',JSON.stringify(corridas));
     atualizar();
-  </script>
+    showToast('Registro removido!');
+  }
+}
+
+function calcularProjecao(){
+  const inicioStr=document.getElementById('dataInicio').value;
+  const fimStr=document.getElementById('dataFinal').value;
+  if(!inicioStr||!fimStr){ showToast('Selecione as duas datas!'); return; }
+  const dataInicio=new Date(inicioStr+'T00:00:00');
+  const dataFim=new Date(fimStr+'T00:00:00');
+  if(dataFim<dataInicio){ showToast('Data final deve ser maior ou igual à inicial.'); return; }
+  let diasUteis=0; let diaAtual=new Date(dataInicio);
+  while(diaAtual<=dataFim){ const ds=diaAtual.getDay(); if(ds!==0&&ds!==6)diasUteis++; diaAtual.setDate(diaAtual.getDate()+1); }
+  const total=diasUteis*VALOR_DIA_UTIL;
+  document.getElementById('resultadoProjecao').innerText=`De ${inicioStr} até ${fimStr} → ${diasUteis} dias úteis → Valor: R$ ${total.toFixed(2).replace('.',',')}`;
+  showToast('Projeção calculada com sucesso!');
+}
+
+function limparRegistros(){
+  if(confirm('Tem certeza que deseja limpar TODOS os registros?')){
+    localStorage.removeItem('corridas');
+    atualizar();
+    showToast('Registros apagados com sucesso!');
+  }
+}
+
+async function gerarPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc=new jsPDF();
+  const corridas=JSON.parse(localStorage.getItem('corridas'))||[];
+  if(corridas.length===0){ showToast('Nenhuma corrida registrada para exportar.'); return; }
+  const observacoesGerais=document.getElementById('observacoesGerais').value.trim()||'—';
+  const agora=new Date().toLocaleString('pt-BR');
+  const datas=corridas.map(c=>new Date(c.dataHora));
+  const dataInicio=new Date(Math.min(...datas));
+  const dataFim=new Date(Math.max(...datas));
+  const totalIdas=corridas.filter(c=>c.tipo==='ida').length;
+  const totalVoltas=corridas.filter(c=>c.tipo==='volta').length;
+  const totalGeral=corridas.reduce((sum,c)=>sum+c.valor,0);
+  doc.setFontSize(16); doc.text("RECIBO DE CORRIDAS",105,15,null,null,"center");
+  doc.setFontSize(10);
+  doc.text(`Emitido em: ${agora}`,14,25);
+  doc.text(`Pagador: Arnaldo de Sousa Lima`,14,32);
+  doc.text(`CPF: ***.929.0**-77`,14,39);
+  doc.text(`Forma de pagamento: Pix`,14,46);
+  doc.text(`Contato: (64) 9 9295-2748`,14,53);
+  doc.text(`Período: ${dataInicio.toLocaleDateString()} a ${dataFim.toLocaleDateString()}`,14,60);
+  doc.text(`Observações Gerais: ${observacoesGerais}`,14,67);
+  const rows=corridas.map(c=>[c.descricao,c.tipo.charAt(0).toUpperCase()+c.tipo.slice(1),c.observacao||'—',c.dataHora,`R$ ${c.valor.toFixed(2).replace('.',',')}`]);
+  doc.autoTable({startY:75,head:[['Descrição','Tipo','Observação','Data e Hora','Valor']],body:rows,styles:{fontSize:8}});
+  const finalY=doc.lastAutoTable.finalY+5;
+  doc.text(`Total Idas: ${totalIdas}`,14,finalY+5);
+  doc.text(`Total Voltas: ${totalVoltas}`,14,finalY+10);
+  doc.text(`Total Geral: R$ ${totalGeral.toFixed(2).replace('.',',')}`,14,finalY+15);
+  doc.text(`Atecseven Tecnologia 2025 - Todos os direitos reservados.`,14,finalY+25);
+  doc.save("recibo_corridas.pdf");
+  showToast('PDF gerado com sucesso!');
+}
+
+// Gráfico
+let chartCorridas=null;
+function atualizarGrafico(corridas){
+  const ctx=document.getElementById('graficoCorridas').getContext('2d');
+  const ids=corridas.filter(c=>c.tipo==='ida').length;
+  const vols=corridas.filter(c=>c.tipo==='volta').length;
+  if(chartCorridas) chartCorridas.destroy();
+  chartCorridas=new Chart(ctx,{
+    type:'bar',
+    data:{ labels:['Idas','Voltas'], datasets:[{label:'Quantidade de Corridas', data:[ids,vols], backgroundColor:['#ff6f00','#e65100']}] },
+    options:{ responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
+  });
+}
+
+atualizar();
+</script>
 </body>
 </html>
+
