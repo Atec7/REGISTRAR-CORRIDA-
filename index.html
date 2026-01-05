@@ -3,257 +3,724 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Super App de Corridas</title>
+  <title>Super App Gestão de Corridas V3</title>
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
   <style>
     :root {
-      --orange: #ff6f00;
-      --orange-dark: #e65100;
-      --black: #121212;
-      --white: #fff;
-      --bg: #f5f5f5;
+      --primary: #ff6f00;
+      --primary-dark: #e65100;
+      --secondary: #121212;
+      --surface: #ffffff;
+      --bg: #f0f2f5;
+      --text: #333;
       --radius: 12px;
-      --shadow: 0 4px 10px rgba(0,0,0,0.1);
+      --shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
-    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--black); transition: .3s;}
-    header { background: var(--black); color: var(--white); padding: 20px; text-align: center; font-size:1.5em; font-weight:700; position:sticky; top:0; z-index:1000;}
-    main { max-width:700px; margin:20px auto; padding:0 15px 40px;}
-    form, .projecao, table, .observacoes-gerais { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 25px;}
-    label { display:block; margin:10px 0 5px; font-weight:600;}
-    input, select, textarea { width:100%; padding:12px; border:1px solid #ddd; border-radius: var(--radius); font-size:1em; margin-bottom:15px; box-sizing:border-box;}
-    textarea { min-height:80px; resize: vertical;}
-    .btn { display:inline-block; background: var(--orange); color: var(--white); border:none; padding:14px; border-radius: var(--radius); font-size:1.1em; cursor:pointer; transition:.3s; width:100%; font-weight:600; margin-top:5px;}
-    .btn:hover { background: var(--orange-dark);}
-    .btn.secondary { background: var(--black);}
-    .btn.secondary:hover { background: #000;}
-    .cards { display:flex; flex-wrap:wrap; gap:15px; margin-bottom:25px;}
-    .card { flex:1 1 calc(33% - 10px); background: var(--white); border-left:6px solid var(--orange); border-radius: var(--radius); padding:15px; text-align:center; box-shadow: var(--shadow);}
-    .card h4 { margin:0 0 8px; color: var(--orange-dark); font-weight:700;}
-    .card span { font-size:1.6em; font-weight:700; color: var(--orange);}
-    table { width:100%; border-collapse:collapse; font-size:0.9em;}
-    th, td { padding:8px; text-align:center; border:1px solid #ddd;}
-    th { background: var(--orange); color: var(--white); font-weight:700;}
-    .action-btn { padding:4px 8px; border:none; border-radius:6px; cursor:pointer; font-size:0.85em; margin:1px; }
-    .edit-btn { background:#1976d2; color:#fff;}
-    .delete-btn { background:#d32f2f; color:#fff;}
-    #toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background: var(--black); color:#fff; padding:12px 25px; border-radius:30px; opacity:0; pointer-events:none; transition:.4s; z-index:9999; font-weight:600; box-shadow:0 2px 8px rgba(0,0,0,0.4);}
-    #toast.show { opacity:1; pointer-events:auto;}
-    @media (max-width:600px){ .cards{flex-direction:column;} .card{flex:1 1 100%;} }
+
+    * { box-sizing: border-box; outline: none; }
+    body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 80px; }
+
+    /* Header */
+    header { background: var(--secondary); color: white; padding: 15px 20px; position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+    header h1 { margin: 0; font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    
+    /* Navigation Tabs */
+    .nav-tabs { display: flex; justify-content: space-around; background: white; padding: 10px; position: fixed; bottom: 0; width: 100%; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
+    .nav-item { border: none; background: none; color: #777; font-size: 0.8rem; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: .3s; flex: 1; }
+    .nav-item i { font-size: 1.4rem; margin-bottom: 4px; }
+    .nav-item.active { color: var(--primary); font-weight: 600; }
+
+    /* Main Layout */
+    main { max-width: 900px; margin: 20px auto; padding: 0 15px; display: none; animation: fadeIn 0.4s; }
+    main.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Components */
+    .card-panel { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; position: relative; }
+    .card-panel h2 { margin-top: 0; font-size: 1.1rem; border-bottom: 2px solid var(--bg); padding-bottom: 10px; color: var(--primary-dark); display: flex; justify-content: space-between; align-items: center; }
+
+    /* Stats Cards */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .stat-card { background: white; padding: 15px; border-radius: var(--radius); box-shadow: var(--shadow); border-left: 5px solid var(--primary); }
+    .stat-card small { color: #666; font-weight: 600; display: block; }
+    .stat-card .value { font-size: 1.5rem; font-weight: 700; color: var(--secondary); display: block; margin-top: 5px; }
+
+    /* Chart Container Fix */
+    .chart-wrapper { position: relative; height: 300px; width: 100%; }
+
+    /* Forms */
+    label { display: block; margin: 12px 0 5px; font-weight: 600; font-size: 0.9rem; color: #555; }
+    input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; transition: .3s; background: #fafafa; }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); background: white; }
+    
+    /* Buttons */
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: .2s; display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 10px; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: var(--secondary); color: white; }
+    .btn-danger { background: #d32f2f; color: white; }
+    .btn-small { padding: 5px 10px; font-size: 0.8rem; width: auto; display: inline-flex; margin: 0; }
+    .btn-icon { background: none; color: #555; border: 1px solid #ddd; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .btn-icon:hover { background: #eee; color: var(--primary); }
+
+    /* Table */
+    .table-container { overflow-x: auto; border-radius: 8px; border: 1px solid #eee; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 600px; }
+    th { background: var(--secondary); color: white; padding: 12px; text-align: left; white-space: nowrap; }
+    td { padding: 12px; border-bottom: 1px solid #eee; }
+    tr:last-child td { border-bottom: none; }
+    .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+    .badge-ida { background: #e3f2fd; color: #1565c0; }
+    .badge-volta { background: #e8f5e9; color: #2e7d32; }
+
+    /* Listas Configuraveis */
+    .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9f9f9; margin-bottom: 8px; border-radius: 8px; border: 1px solid #eee; }
+    .motorista-info { display: flex; flex-direction: column; gap: 2px; }
+    .motorista-pix { font-size: 0.8rem; color: #666; font-family: monospace; background: #eee; padding: 2px 6px; border-radius: 4px; display: inline-block; width: fit-content;}
+
+    /* Toast */
+    #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--secondary); color: white; padding: 12px 24px; border-radius: 50px; opacity: 0; pointer-events: none; transition: .4s; z-index: 2000; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    #toast.show { opacity: 1; top: 30px; }
+
+    /* Projeção Result */
+    #projecaoResult { background: #fff3e0; padding: 15px; border-radius: 8px; border: 1px solid #ffe0b2; margin-top: 15px; display: none; }
+    #projecaoResult.active { display: block; }
+
+    /* Filters Area */
+    .filters-area { background: #eef2f5; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #dee2e6; }
+
+    @media (min-width: 768px) {
+      .nav-tabs { position: sticky; top: 70px; bottom: auto; width: 220px; float: left; height: calc(100vh - 70px); flex-direction: column; justify-content: flex-start; gap: 10px; padding-top: 20px; border-right: 1px solid #eee; box-shadow: none; }
+      .nav-item { flex: 0; width: 100%; align-items: flex-start; padding-left: 20px; font-size: 1rem; flex-direction: row; gap: 10px; padding: 12px 20px; }
+      .nav-item:hover { background: #f5f5f5; border-radius: 0 20px 20px 0; }
+      main { margin-left: 240px; padding-bottom: 20px; }
+      body { padding-bottom: 0; }
+    }
   </style>
 </head>
 <body>
-<header>🚕 Super Registro de Corridas</header>
-<main>
-  <form id="corridaForm">
-    <input type="hidden" id="editIndex" value="">
-    <label for="descricao">Descrição:</label>
-    <input type="text" id="descricao" required placeholder="Ex: Ida para trabalho">
-    <label for="tipo">Tipo:</label>
-    <select id="tipo" required>
-      <option value="ida">Ida</option>
-      <option value="volta">Volta</option>
-    </select>
-    <label for="observacao">Observação:</label>
-    <textarea id="observacao" placeholder="Detalhes importantes..."></textarea>
-    <button type="submit" class="btn">Registrar Corrida</button>
-  </form>
 
-  <div class="observacoes-gerais">
-    <label for="observacoesGerais">📌 Observações Gerais:</label>
-    <textarea id="observacoesGerais" placeholder="Estas observações aparecerão no relatório..."></textarea>
+<header>
+  <h1><i class="fas fa-taxi"></i> App Gestão Pro</h1>
+  <div style="font-size: 0.8rem; opacity: 0.8;">V 3.0</div>
+</header>
+
+<nav class="nav-tabs">
+  <button class="nav-item active" onclick="switchTab('dashboard')"><i class="fas fa-chart-pie"></i> Painel</button>
+  <button class="nav-item" onclick="switchTab('registrar')"><i class="fas fa-plus-circle"></i> Lançar</button>
+  <button class="nav-item" onclick="switchTab('relatorios')"><i class="fas fa-file-invoice-dollar"></i> Relatórios</button>
+  <button class="nav-item" onclick="switchTab('configuracoes')"><i class="fas fa-cog"></i> Configurações</button>
+</nav>
+
+<main id="dashboard" class="active">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <small>Receita Total</small>
+      <span class="value" id="dashTotal">R$ 0,00</span>
+    </div>
+    <div class="stat-card">
+      <small>Total Idas</small>
+      <span class="value" id="dashIdas">0</span>
+    </div>
+    <div class="stat-card">
+      <small>Total Voltas</small>
+      <span class="value" id="dashVoltas">0</span>
+    </div>
   </div>
 
-  <div class="cards">
-    <div class="card"><h4>Total Idas</h4><span id="totalIda">0</span></div>
-    <div class="card"><h4>Total Voltas</h4><span id="totalVolta">0</span></div>
-    <div class="card"><h4>Total Geral</h4><span id="total">R$ 0,00</span></div>
+  <div class="card-panel">
+    <h2><i class="fas fa-chart-bar"></i> Performance (Geral)</h2>
+    <div class="chart-wrapper">
+      <canvas id="graficoCorridas"></canvas>
+    </div>
   </div>
 
-  <div class="projecao">
-    <h3>💰 Projeção de Pagamento</h3>
-    <label for="dataInicio">Data Inicial:</label>
-    <input type="date" id="dataInicio">
-    <label for="dataFinal">Data Final:</label>
-    <input type="date" id="dataFinal">
-    <button class="btn secondary" onclick="calcularProjecao()">Calcular Projeção</button>
-    <p id="resultadoProjecao" style="min-height:24px;"></p>
+  <div class="card-panel">
+    <h2><i class="fas fa-history"></i> Últimas 5 Corridas</h2>
+    <div class="table-container">
+      <table id="miniTable">
+        <thead><tr><th>Motorista</th><th>Tipo</th><th>Valor</th><th>Hora</th></tr></thead>
+        <tbody id="miniTableBody"></tbody>
+      </table>
+    </div>
   </div>
-
-  <div class="actions">
-    <button class="btn secondary" onclick="gerarPDF()">Exportar PDF</button>
-    <button class="btn secondary" onclick="limparRegistros()">Limpar Registros</button>
-  </div>
-
-  <canvas id="graficoCorridas" style="margin-bottom:25px;"></canvas>
-
-  <table>
-    <thead>
-      <tr><th>Descrição</th><th>Tipo</th><th>Observação</th><th>Data e Hora</th><th>Valor (R$)</th><th>Ações</th></tr>
-    </thead>
-    <tbody id="corridasTableBody"></tbody>
-  </table>
 </main>
-<div id="toast"></div>
+
+<main id="registrar">
+  <div class="card-panel">
+    <h2><i class="fas fa-edit"></i> Nova Corrida</h2>
+    <form id="corridaForm">
+      <input type="hidden" id="editIndex" value="">
+      
+      <label for="motorista">Selecione o Motorista:</label>
+      <select id="motorista" required>
+        </select>
+
+      <label for="descricao">Descrição / Cliente:</label>
+      <input type="text" id="descricao" required placeholder="Ex: Rota Fábrica -> Centro">
+
+      <label for="tipo">Tipo da Corrida:</label>
+      <select id="tipo" onchange="atualizarValorPreview()" required>
+        <option value="ida">Ida</option>
+        <option value="volta">Volta</option>
+      </select>
+
+      <div style="display:flex; gap:10px;">
+        <div style="flex:1">
+           <label for="valorPreview">Valor (R$):</label>
+           <input type="number" id="valorPreview" step="0.01" required>
+        </div>
+        <div style="flex:1">
+           <label for="dataManual">Data (Opcional):</label>
+           <input type="date" id="dataManual">
+        </div>
+      </div>
+
+      <label for="observacao">Observação:</label>
+      <textarea id="observacao" placeholder="Ex: Parada extra no posto..."></textarea>
+
+      <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar Registro</button>
+    </form>
+  </div>
+</main>
+
+<main id="relatorios">
+  
+  <div class="card-panel">
+    <h2><i class="fas fa-filter"></i> Filtros e Exportação</h2>
+    
+    <div class="filters-area">
+      <label>Filtrar Relatório por Motorista:</label>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <select id="filtroMotorista" onchange="aplicarFiltros()">
+          <option value="todos">Todos os Motoristas</option>
+          </select>
+        <button class="btn-icon" title="Copiar Pix deste motorista" onclick="copiarPixFiltro()"><i class="fas fa-copy"></i></button>
+      </div>
+      <small id="filtroPixDisplay" style="color:var(--primary); font-weight:600; margin-top:5px; display:block;"></small>
+    </div>
+
+    <div class="actions" style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="gerarPDF()" style="flex:1"><i class="fas fa-file-pdf"></i> Baixar PDF Filtrado</button>
+      <button class="btn btn-danger" onclick="limparRegistros()" style="flex:1"><i class="fas fa-trash"></i> Limpar Tudo</button>
+    </div>
+  </div>
+
+  <div class="card-panel">
+    <h2><i class="fas fa-list"></i> Detalhamento</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr><th>Data</th><th>Motorista</th><th>Desc.</th><th>Tipo</th><th>Valor</th><th>Ações</th></tr>
+        </thead>
+        <tbody id="fullTableBody"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px; text-align:right; font-weight:bold; font-size:1.1em;">
+      Total da seleção: <span id="totalFiltrado" style="color:var(--primary)">R$ 0,00</span>
+    </div>
+  </div>
+
+  <div class="card-panel" style="margin-top:20px;">
+    <h2><i class="fas fa-calculator"></i> Calculadora de Dias Úteis</h2>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <div style="flex:1"><label>Início</label><input type="date" id="dataInicio"></div>
+      <div style="flex:1"><label>Fim</label><input type="date" id="dataFinal"></div>
+    </div>
+    <button class="btn btn-secondary" onclick="calcularProjecao()">Calcular</button>
+    <div id="projecaoResult"></div>
+  </div>
+</main>
+
+<main id="configuracoes">
+  <div class="card-panel">
+    <h2><i class="fas fa-users"></i> Gestão de Motoristas</h2>
+    <div style="background:#eef2f5; padding:15px; border-radius:8px; margin-bottom:15px;">
+      <label>Nome do Motorista:</label>
+      <input type="text" id="novoMotoristaNome" placeholder="Ex: João da Silva">
+      <label>Chave Pix:</label>
+      <input type="text" id="novoMotoristaPix" placeholder="CPF, Email ou Telefone">
+      <button class="btn btn-primary" onclick="addMotorista()"><i class="fas fa-plus"></i> Adicionar Motorista</button>
+    </div>
+
+    <div id="listaMotoristas">
+      </div>
+  </div>
+
+  <div class="card-panel">
+    <h2><i class="fas fa-dollar-sign"></i> Preços Padrão</h2>
+    <div style="display:flex; gap:10px;">
+      <div style="flex:1"><label>Ida (R$)</label><input type="number" id="confValorIda" step="0.01"></div>
+      <div style="flex:1"><label>Volta (R$)</label><input type="number" id="confValorVolta" step="0.01"></div>
+    </div>
+    <button class="btn btn-secondary" onclick="salvarConfigPrecos()">Salvar Preços</button>
+  </div>
+
+  <div class="card-panel">
+    <h2><i class="fas fa-building"></i> Dados da Empresa (PDF)</h2>
+    <label>Nome do Pagador/Empresa</label>
+    <input type="text" id="confEmpresa">
+    <label>CPF/CNPJ do Pagador</label>
+    <input type="text" id="confDoc">
+    <label>Contato</label>
+    <input type="text" id="confContato">
+    <button class="btn btn-secondary" onclick="salvarConfigEmpresa()">Atualizar Dados Empresa</button>
+  </div>
+</main>
+
+<div id="toast"><i class="fas fa-check-circle"></i> <span>Notificação</span></div>
 
 <script>
-const VALOR_IDA=10.25,VALOR_VOLTA=15.0,VALOR_DIA_UTIL=VALOR_IDA+VALOR_VOLTA;
-
-const showToast=msg=>{
-  const t=document.getElementById('toast');
-  t.innerText=msg;
-  t.classList.add('show');
-  clearTimeout(t.timeout);
-  t.timeout=setTimeout(()=>t.classList.remove('show'),3000);
+// --- GESTÃO DE ESTADO ---
+// Estrutura de dados atualizada para suportar objetos de motoristas
+const DEFAULT_CONFIG = {
+  valorIda: 10.25,
+  valorVolta: 15.00,
+  motoristas: [
+    { nome: 'Motorista Padrão', pix: 'Não cadastrado' }
+  ],
+  empresa: 'ATECSEVEN TECNOLOGIA',
+  documento: '00.000.000/0001-00',
+  contato: '(64) 9 9295-2748'
 };
 
-document.getElementById('corridaForm').addEventListener('submit',e=>{
-  e.preventDefault();
-  const descricao=document.getElementById('descricao').value.trim();
-  const tipo=document.getElementById('tipo').value;
-  const observacao=document.getElementById('observacao').value.trim()||'—';
-  const editIndex=document.getElementById('editIndex').value;
+let config = JSON.parse(localStorage.getItem('appConfigV3')) || DEFAULT_CONFIG;
 
-  if(!descricao){ showToast('Descrição é obrigatória.'); return; }
+// Migração simples caso o usuário tenha dados antigos (strings) no localStorage de versões anteriores
+if(config.motoristas.length > 0 && typeof config.motoristas[0] === 'string') {
+    config.motoristas = config.motoristas.map(m => ({ nome: m, pix: '' }));
+    localStorage.setItem('appConfigV3', JSON.stringify(config));
+}
 
-  let corridas=JSON.parse(localStorage.getItem('corridas'))||[];
-  const dataHora=new Date().toLocaleString('pt-BR');
-  const valor=tipo==='ida'?VALOR_IDA:VALOR_VOLTA;
+let corridas = JSON.parse(localStorage.getItem('corridasV3')) || [];
+let chartInstance = null;
 
-  if(editIndex===''){
-    corridas.push({descricao,tipo,observacao,valor,dataHora});
-    showToast('Corrida registrada com sucesso!');
-  } else {
-    corridas[editIndex]={...corridas[editIndex],descricao,tipo,observacao,valor};
-    document.getElementById('editIndex').value='';
-    showToast('Corrida atualizada com sucesso!');
-  }
-
-  localStorage.setItem('corridas',JSON.stringify(corridas));
-  e.target.reset();
-  atualizar();
+// --- INICIALIZAÇÃO ---
+document.addEventListener('DOMContentLoaded', () => {
+  renderConfigInputs();
+  renderMotoristasUI();
+  aplicarFiltros(); // Carrega tabela inicial
+  
+  // Set data atual no input manual
+  document.getElementById('dataManual').valueAsDate = new Date();
 });
 
-function atualizar(){
-  const corridas=JSON.parse(localStorage.getItem('corridas'))||[];
-  document.getElementById('totalIda').innerText=corridas.filter(c=>c.tipo==='ida').length;
-  document.getElementById('totalVolta').innerText=corridas.filter(c=>c.tipo==='volta').length;
-  const totalGeral=corridas.reduce((acc,c)=>acc+c.valor,0);
-  document.getElementById('total').innerText='R$ '+totalGeral.toFixed(2).replace('.',',');
+function switchTab(tabId) {
+  document.querySelectorAll('main').forEach(m => m.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  event.currentTarget.classList.add('active');
+  
+  if(tabId === 'dashboard') {
+    atualizarDashboard();
+  } else if (tabId === 'relatorios') {
+    aplicarFiltros();
+  }
+}
 
-  const tbody=document.getElementById('corridasTableBody');
-  tbody.innerHTML='';
-  corridas.forEach((c,i)=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
+const showToast = (msg) => {
+  const t = document.getElementById('toast');
+  t.querySelector('span').innerText = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+};
+
+const copiarTexto = (texto) => {
+    if(!texto) return showToast('Nada para copiar.');
+    navigator.clipboard.writeText(texto).then(() => {
+        showToast(`Pix copiado: ${texto}`);
+    }).catch(() => showToast('Erro ao copiar'));
+};
+
+// --- CONFIGURAÇÕES E MOTORISTAS ---
+function renderConfigInputs() {
+  document.getElementById('confValorIda').value = config.valorIda;
+  document.getElementById('confValorVolta').value = config.valorVolta;
+  document.getElementById('confEmpresa').value = config.empresa;
+  document.getElementById('confDoc').value = config.documento;
+  document.getElementById('confContato').value = config.contato;
+  atualizarValorPreview();
+}
+
+function renderMotoristasUI() {
+  // Atualiza Select do Formulário
+  const selectForm = document.getElementById('motorista');
+  selectForm.innerHTML = config.motoristas.map(m => `<option value="${m.nome}">${m.nome}</option>`).join('');
+
+  // Atualiza Select do Filtro
+  const selectFilter = document.getElementById('filtroMotorista');
+  const valorAtual = selectFilter.value; // Manter seleção se possível
+  selectFilter.innerHTML = `<option value="todos">Todos os Motoristas</option>` + 
+                           config.motoristas.map(m => `<option value="${m.nome}">${m.nome}</option>`).join('');
+  selectFilter.value = valorAtual;
+
+  // Atualiza Lista de Gestão
+  const lista = document.getElementById('listaMotoristas');
+  lista.innerHTML = config.motoristas.map((m, i) => `
+    <div class="list-item">
+      <div class="motorista-info">
+        <strong><i class="fas fa-user"></i> ${m.nome}</strong>
+        <span class="motorista-pix" title="Chave Pix"><i class="fas fa-key"></i> ${m.pix || 'Sem pix'}</span>
+      </div>
+      <div style="display:flex; gap:5px;">
+        <button class="btn-icon" onclick="copiarTexto('${m.pix}')" title="Copiar Pix"><i class="fas fa-copy"></i></button>
+        <button class="btn btn-danger btn-small" onclick="removeMotorista(${i})" title="Remover"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addMotorista() {
+  const nome = document.getElementById('novoMotoristaNome').value.trim();
+  const pix = document.getElementById('novoMotoristaPix').value.trim();
+  
+  if(nome) {
+    // Verifica duplicidade
+    if(config.motoristas.some(m => m.nome.toLowerCase() === nome.toLowerCase())) {
+        showToast('Motorista já existe!');
+        return;
+    }
+    config.motoristas.push({ nome, pix });
+    saveConfig();
+    document.getElementById('novoMotoristaNome').value = '';
+    document.getElementById('novoMotoristaPix').value = '';
+    renderMotoristasUI();
+    showToast('Motorista adicionado!');
+  } else {
+      showToast('Nome é obrigatório.');
+  }
+}
+
+function removeMotorista(index) {
+  if(confirm('Remover este motorista?')) {
+    config.motoristas.splice(index, 1);
+    saveConfig();
+    renderMotoristasUI();
+  }
+}
+
+function saveConfig() {
+  localStorage.setItem('appConfigV3', JSON.stringify(config));
+}
+
+function salvarConfigPrecos() {
+  config.valorIda = parseFloat(document.getElementById('confValorIda').value);
+  config.valorVolta = parseFloat(document.getElementById('confValorVolta').value);
+  saveConfig();
+  showToast('Preços atualizados!');
+}
+
+function salvarConfigEmpresa() {
+  config.empresa = document.getElementById('confEmpresa').value;
+  config.documento = document.getElementById('confDoc').value;
+  config.contato = document.getElementById('confContato').value;
+  saveConfig();
+  showToast('Dados da empresa salvos!');
+}
+
+// --- REGISTRO DE CORRIDAS ---
+function atualizarValorPreview() {
+  const tipo = document.getElementById('tipo').value;
+  document.getElementById('valorPreview').value = (tipo === 'ida' ? config.valorIda : config.valorVolta).toFixed(2);
+}
+
+document.getElementById('corridaForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const index = document.getElementById('editIndex').value;
+  
+  // Data: se o usuario mudou o input date, usa ele. Senao usa agora.
+  const dataInput = document.getElementById('dataManual').value;
+  let dataFinal = new Date();
+  if(dataInput) {
+      const parts = dataInput.split('-');
+      // Mantem a hora atual mas muda o dia
+      dataFinal.setFullYear(parts[0], parts[1]-1, parts[2]);
+  }
+
+  const novaCorrida = {
+    descricao: document.getElementById('descricao').value,
+    tipo: document.getElementById('tipo').value,
+    valor: parseFloat(document.getElementById('valorPreview').value),
+    motorista: document.getElementById('motorista').value,
+    observacao: document.getElementById('observacao').value,
+    dataHora: dataFinal.toISOString()
+  };
+
+  if(index !== '') {
+    corridas[index] = { ...corridas[index], ...novaCorrida };
+    document.getElementById('editIndex').value = '';
+    showToast('Registro atualizado!');
+  } else {
+    corridas.push(novaCorrida);
+    showToast('Corrida registrada!');
+  }
+
+  localStorage.setItem('corridasV3', JSON.stringify(corridas));
+  e.target.reset();
+  
+  // Resetar data e valor para defaults
+  document.getElementById('dataManual').valueAsDate = new Date();
+  atualizarValorPreview();
+  
+  switchTab('dashboard');
+});
+
+// --- DASHBOARD E FILTROS ---
+function atualizarDashboard() {
+  const total = corridas.reduce((acc, c) => acc + c.valor, 0);
+  const idas = corridas.filter(c => c.tipo === 'ida').length;
+  const voltas = corridas.filter(c => c.tipo === 'volta').length;
+
+  document.getElementById('dashTotal').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+  document.getElementById('dashIdas').innerText = idas;
+  document.getElementById('dashVoltas').innerText = voltas;
+
+  // Mini Tabela (Últimas 5)
+  const ultimas = [...corridas].sort((a,b) => new Date(b.dataHora) - new Date(a.dataHora)).slice(0,5);
+  const tbody = document.getElementById('miniTableBody');
+  tbody.innerHTML = ultimas.map(c => `
+    <tr>
+        <td>${c.motorista}</td>
+        <td><span class="status-badge ${c.tipo === 'ida' ? 'badge-ida' : 'badge-volta'}">${c.tipo}</span></td>
+        <td>R$ ${c.valor.toFixed(2).replace('.',',')}</td>
+        <td>${new Date(c.dataHora).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</td>
+    </tr>
+  `).join('');
+
+  renderGrafico(idas, voltas);
+}
+
+function renderGrafico(idas, voltas) {
+  const ctx = document.getElementById('graficoCorridas').getContext('2d');
+  
+  if (chartInstance) chartInstance.destroy();
+  
+  chartInstance = new Chart(ctx, {
+    type: 'bar', // Mudado para barra para preencher melhor
+    data: {
+      labels: ['Idas', 'Voltas'],
+      datasets: [{
+        label: 'Quantidade',
+        data: [idas, voltas],
+        backgroundColor: ['#2196f3', '#4caf50'],
+        borderRadius: 5
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false, // Importante para não expandir
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+    }
+  });
+}
+
+// --- LÓGICA DE FILTRO E TABELA ---
+function copiarPixFiltro() {
+    const motoristaNome = document.getElementById('filtroMotorista').value;
+    if(motoristaNome === 'todos') return showToast('Selecione um motorista para copiar.');
+    
+    const mot = config.motoristas.find(m => m.nome === motoristaNome);
+    if(mot && mot.pix) copiarTexto(mot.pix);
+    else showToast('Este motorista não tem Pix cadastrado.');
+}
+
+function aplicarFiltros() {
+  const filtro = document.getElementById('filtroMotorista').value;
+  const displayPix = document.getElementById('filtroPixDisplay');
+  
+  let dadosFiltrados = corridas;
+
+  // Atualiza display do pix e filtra dados
+  if(filtro !== 'todos') {
+      dadosFiltrados = corridas.filter(c => c.motorista === filtro);
+      const mot = config.motoristas.find(m => m.nome === filtro);
+      displayPix.innerText = mot && mot.pix ? `Chave Pix: ${mot.pix}` : 'Sem Pix cadastrado';
+  } else {
+      displayPix.innerText = '';
+  }
+
+  // Ordena por data (mais recente primeiro)
+  dadosFiltrados.sort((a,b) => new Date(b.dataHora) - new Date(a.dataHora));
+
+  const tbody = document.getElementById('fullTableBody');
+  tbody.innerHTML = '';
+
+  let totalFiltrado = 0;
+
+  dadosFiltrados.forEach(c => {
+    totalFiltrado += c.valor;
+    const originalIndex = corridas.indexOf(c); // Importante para editar/excluir o item certo
+    
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${new Date(c.dataHora).toLocaleDateString()} <small>${new Date(c.dataHora).toLocaleTimeString().slice(0,5)}</small></td>
+      <td>${c.motorista}</td>
       <td>${c.descricao}</td>
-      <td>${c.tipo.charAt(0).toUpperCase()+c.tipo.slice(1)}</td>
-      <td>${c.observacao}</td>
-      <td>${c.dataHora}</td>
-      <td>R$ ${c.valor.toFixed(2).replace('.',',')}</td>
+      <td><span class="status-badge ${c.tipo === 'ida' ? 'badge-ida' : 'badge-volta'}">${c.tipo.toUpperCase()}</span></td>
+      <td>R$ ${c.valor.toFixed(2).replace('.', ',')}</td>
       <td>
-        <button class="action-btn edit-btn" onclick="editar(${i})">Editar</button>
-        <button class="action-btn delete-btn" onclick="remover(${i})">Excluir</button>
+        <button class="btn btn-secondary btn-small" onclick="editar(${originalIndex})"><i class="fas fa-pen"></i></button>
+        <button class="btn btn-danger btn-small" onclick="remover(${originalIndex})"><i class="fas fa-trash"></i></button>
       </td>
     `;
     tbody.appendChild(tr);
   });
 
-  atualizarGrafico(corridas);
+  document.getElementById('totalFiltrado').innerText = `R$ ${totalFiltrado.toFixed(2).replace('.', ',')}`;
 }
 
-function editar(index){
-  const corridas=JSON.parse(localStorage.getItem('corridas'))||[];
-  const c=corridas[index];
-  document.getElementById('descricao').value=c.descricao;
-  document.getElementById('tipo').value=c.tipo;
-  document.getElementById('observacao').value=c.observacao;
-  document.getElementById('editIndex').value=index;
-  showToast('Modo edição ativado!');
+function editar(index) {
+  const c = corridas[index];
+  document.getElementById('descricao').value = c.descricao;
+  document.getElementById('tipo').value = c.tipo;
+  document.getElementById('valorPreview').value = c.valor;
+  document.getElementById('motorista').value = c.motorista;
+  document.getElementById('observacao').value = c.observacao;
+  // Tentar setar a data
+  if(c.dataHora) {
+      document.getElementById('dataManual').value = c.dataHora.split('T')[0];
+  }
+  
+  document.getElementById('editIndex').value = index;
+  switchTab('registrar');
+  showToast('Modo de edição ativado.');
 }
 
-function remover(index){
-  if(confirm('Deseja realmente excluir este registro?')){
-    let corridas=JSON.parse(localStorage.getItem('corridas'))||[];
-    corridas.splice(index,1);
-    localStorage.setItem('corridas',JSON.stringify(corridas));
-    atualizar();
-    showToast('Registro removido!');
+function remover(index) {
+  if(confirm('Tem certeza?')) {
+    corridas.splice(index, 1);
+    localStorage.setItem('corridasV3', JSON.stringify(corridas));
+    aplicarFiltros();
+    showToast('Excluído.');
   }
 }
 
-function calcularProjecao(){
-  const inicioStr=document.getElementById('dataInicio').value;
-  const fimStr=document.getElementById('dataFinal').value;
-  if(!inicioStr||!fimStr){ showToast('Selecione as duas datas!'); return; }
-  const dataInicio=new Date(inicioStr+'T00:00:00');
-  const dataFim=new Date(fimStr+'T00:00:00');
-  if(dataFim<dataInicio){ showToast('Data final deve ser maior ou igual à inicial.'); return; }
-  let diasUteis=0; let diaAtual=new Date(dataInicio);
-  while(diaAtual<=dataFim){ const ds=diaAtual.getDay(); if(ds!==0&&ds!==6)diasUteis++; diaAtual.setDate(diaAtual.getDate()+1); }
-  const total=diasUteis*VALOR_DIA_UTIL;
-  document.getElementById('resultadoProjecao').innerText=`De ${inicioStr} até ${fimStr} → ${diasUteis} dias úteis → Valor: R$ ${total.toFixed(2).replace('.',',')}`;
-  showToast('Projeção calculada com sucesso!');
-}
-
-function limparRegistros(){
-  if(confirm('Tem certeza que deseja limpar TODOS os registros?')){
-    localStorage.removeItem('corridas');
-    atualizar();
-    showToast('Registros apagados com sucesso!');
+function limparRegistros() {
+  if(confirm('ATENÇÃO: Isso apaga TODO o histórico. Confirmar?')) {
+    corridas = [];
+    localStorage.removeItem('corridasV3');
+    aplicarFiltros();
+    showToast('Histórico limpo.');
   }
 }
 
-async function gerarPDF(){
+// --- PROJEÇÃO ---
+function calcularProjecao() {
+  const inicio = document.getElementById('dataInicio').value;
+  const fim = document.getElementById('dataFinal').value;
+  if(!inicio || !fim) return showToast('Datas inválidas.');
+
+  const d1 = new Date(inicio + 'T00:00:00');
+  const d2 = new Date(fim + 'T00:00:00');
+  
+  let uteis = 0;
+  let current = new Date(d1);
+  while(current <= d2) {
+    const day = current.getDay();
+    if(day !== 0 && day !== 6) uteis++;
+    current.setDate(current.getDate()+1);
+  }
+
+  const custoDiario = config.valorIda + config.valorVolta;
+  document.getElementById('projecaoResult').innerHTML = `
+    <strong>${uteis} Dias Úteis</strong><br>
+    Custo Estimado: <span style="color:green; font-size:1.2em">R$ ${(uteis * custoDiario).toFixed(2).replace('.',',')}</span>
+  `;
+  document.getElementById('projecaoResult').classList.add('active');
+}
+
+// --- EXPORTAÇÃO PDF INTELIGENTE ---
+async function gerarPDF() {
+  const filtro = document.getElementById('filtroMotorista').value;
+  let dadosExport = corridas;
+  let titulo = "RELATÓRIO GERAL DE CORRIDAS";
+  let motoristaInfo = "Todos os Motoristas";
+  let pixInfo = "";
+
+  // Aplicar filtro se selecionado
+  if(filtro !== 'todos') {
+      dadosExport = corridas.filter(c => c.motorista === filtro);
+      titulo = "SISTEMA DE GESTÃO ATEC7 - TRANSPORTE";
+      motoristaInfo = filtro;
+      const motObj = config.motoristas.find(m => m.nome === filtro);
+      if(motObj && motObj.pix) pixInfo = `Chave Pix para Pagamento: ${motObj.pix}`;
+  }
+
+  if(dadosExport.length === 0) return showToast('Sem dados para exportar.');
+
+  // Ordenar
+  dadosExport.sort((a,b) => new Date(a.dataHora) - new Date(b.dataHora)); // Crescente para relatório
+
   const { jsPDF } = window.jspdf;
-  const doc=new jsPDF();
-  const corridas=JSON.parse(localStorage.getItem('corridas'))||[];
-  if(corridas.length===0){ showToast('Nenhuma corrida registrada para exportar.'); return; }
-  const observacoesGerais=document.getElementById('observacoesGerais').value.trim()||'—';
-  const agora=new Date().toLocaleString('pt-BR');
-  const datas=corridas.map(c=>new Date(c.dataHora));
-  const dataInicio=new Date(Math.min(...datas));
-  const dataFim=new Date(Math.max(...datas));
-  const totalIdas=corridas.filter(c=>c.tipo==='ida').length;
-  const totalVoltas=corridas.filter(c=>c.tipo==='volta').length;
-  const totalGeral=corridas.reduce((sum,c)=>sum+c.valor,0);
-  doc.setFontSize(16); doc.text("RECIBO DE CORRIDAS",105,15,null,null,"center");
+  const doc = new jsPDF();
+
+  // Header Escuro
+  doc.setFillColor(33, 33, 33);
+  doc.rect(0, 0, 210, 35, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(18);
+  doc.text(titulo, 105, 18, null, null, "center");
   doc.setFontSize(10);
-  doc.text(`Emitido em: ${agora}`,14,25);
-  doc.text(`Pagador: Arnaldo de Sousa Lima`,14,32);
-  doc.text(`CPF: ***.929.0**-77`,14,39);
-  doc.text(`Forma de pagamento: Pix`,14,46);
-  doc.text(`Contato: (64) 9 9295-2748`,14,53);
-  doc.text(`Período: ${dataInicio.toLocaleDateString()} a ${dataFim.toLocaleDateString()}`,14,60);
-  doc.text(`Observações Gerais: ${observacoesGerais}`,14,67);
-  const rows=corridas.map(c=>[c.descricao,c.tipo.charAt(0).toUpperCase()+c.tipo.slice(1),c.observacao||'—',c.dataHora,`R$ ${c.valor.toFixed(2).replace('.',',')}`]);
-  doc.autoTable({startY:75,head:[['Descrição','Tipo','Observação','Data e Hora','Valor']],body:rows,styles:{fontSize:8}});
-  const finalY=doc.lastAutoTable.finalY+5;
-  doc.text(`Total Idas: ${totalIdas}`,14,finalY+5);
-  doc.text(`Total Voltas: ${totalVoltas}`,14,finalY+10);
-  doc.text(`Total Geral: R$ ${totalGeral.toFixed(2).replace('.',',')}`,14,finalY+15);
-  doc.text(`Atecseven Tecnologia 2025 - Todos os direitos reservados.`,14,finalY+25);
-  doc.save("recibo_corridas.pdf");
-  showToast('PDF gerado com sucesso!');
-}
+  doc.text(`Emitido em: ${new Date().toLocaleString()}`, 105, 26, null, null, "center");
 
-// Gráfico
-let chartCorridas=null;
-function atualizarGrafico(corridas){
-  const ctx=document.getElementById('graficoCorridas').getContext('2d');
-  const ids=corridas.filter(c=>c.tipo==='ida').length;
-  const vols=corridas.filter(c=>c.tipo==='volta').length;
-  if(chartCorridas) chartCorridas.destroy();
-  chartCorridas=new Chart(ctx,{
-    type:'bar',
-    data:{ labels:['Idas','Voltas'], datasets:[{label:'Quantidade de Corridas', data:[ids,vols], backgroundColor:['#ff6f00','#e65100']}] },
-    options:{ responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
+  // Info Pagador
+  doc.setTextColor(0, 0, 0);
+  doc.setFont(undefined, 'bold');
+  doc.text("DADOS DA EMPRESA", 14, 45);
+  doc.setFont(undefined, 'normal');
+  doc.text(config.empresa, 14, 51);
+  doc.text(`CNPJ/CPF: ${config.documento}`, 14, 56);
+
+  // Info Prestador (Motorista)
+  doc.setFont(undefined, 'bold');
+  doc.text("PRESTADOR DO SERVIÇO", 120, 45);
+  doc.setFont(undefined, 'normal');
+  doc.text(motoristaInfo, 120, 51);
+  if(pixInfo) {
+      doc.setTextColor(200, 0, 0); // Destaque vermelho escuro
+      doc.setFont(undefined, 'bold');
+      doc.text(pixInfo, 120, 56);
+      doc.setTextColor(0, 0, 0);
+  }
+
+  // Tabela
+  const rows = dadosExport.map(c => [
+    new Date(c.dataHora).toLocaleDateString(),
+    c.descricao,
+    c.tipo.toUpperCase(),
+    `R$ ${c.valor.toFixed(2).replace('.', ',')}`
+  ]);
+
+  doc.autoTable({
+    startY: 65,
+    head: [['Data', 'Descrição', 'Tipo', 'Valor']],
+    body: rows,
+    theme: 'striped',
+    headStyles: { fillColor: [255, 111, 0] },
+    styles: { fontSize: 9 }
   });
-}
 
-atualizar();
+  // Totais
+  const total = dadosExport.reduce((acc, c) => acc + c.valor, 0);
+  const finalY = doc.lastAutoTable.finalY + 10;
+  
+  doc.setFontSize(12);
+  doc.setFont(undefined, 'bold');
+  doc.text(`TOTAL A PAGAR: R$ ${total.toFixed(2).replace('.', ',')}`, 195, finalY, null, null, "right");
+
+  doc.setFontSize(8);
+  doc.setFont(undefined, 'normal');
+  doc.text("Atecseven Tecnologia - comercial@atecseven.com.br Belo Horizonte/MG", 105, 280, null, null, "center");
+
+  doc.save(`relatorio_${filtro}_${Date.now()}.pdf`);
+  showToast('PDF Gerado!');
+}
 </script>
 </body>
 </html>
-
